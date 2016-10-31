@@ -1,10 +1,13 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
+
 import itertools
 
+# Custom Modules
 from matricies import *
 from baseline_subtraction_variables import *
+from k_baseline import line_scanner, K_Baseline
+
 from os.path import join
 
 from datetime import datetime
@@ -126,7 +129,12 @@ def k_filter3(panda_table, steps, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167
         filtered_data.append(list(row.mean(axis=0)))
     return filtered_data
 
-def plot_dyes(list_list_dyes):
+def plot_one_dye(list_of_x, list_of_y):
+    fig = plt.figure()
+    plot = fig.add_subplot(111)
+    plot.plot(list_of_x, list_of_y, c="blue", label='New Baseline')
+
+def plot_dyes(list_list_dyes, list_of_x = [], list_of_y = []):
     fig = plt.figure()
     plot = fig.add_subplot(111)
 
@@ -135,8 +143,10 @@ def plot_dyes(list_list_dyes):
     # plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
     # plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
     # plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
-    # plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
-    plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
+    plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
+    # plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
+
+    plot.plot(list_of_x, list_of_y, c="yellow", label='New Baseline')
     """
     Set the x and y coordinate labels
     """
@@ -168,6 +178,49 @@ def plot_dyes(list_list_dyes):
     """
     legend = plt.legend(loc='upper left', fontsize='small')
     return plot
+
+# def plot_dyes(list_list_dyes):
+#     fig = plt.figure()
+#     plot = fig.add_subplot(111)
+#
+#     x_axis = [x for x in range(len(list_list_dyes[0]))]
+#     # Plotting the actual color. Comment out if you don't want to plot one of them
+#     # plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
+#     # plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
+#     # plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
+#     plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
+#     # plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
+#     """
+#     Set the x and y coordinate labels
+#     """
+#     plot.set_xlabel('quarter Seconds')
+#     plot.set_ylabel('ADC-Counts')
+#     """
+#     delta click event function
+#     """
+#     # Keep track of x/y coordinates, part of the find_delta_onclick
+#     xcoords = []
+#     ycoords = []
+#     def find_delta_onclick(event):
+#         global ix, iy
+#         global coords
+#         ix, iy = event.xdata, event.ydata
+#         xcoords.append(ix)
+#         ycoords.append(iy)
+#         print 'x = %s, y = %s' % (ix, iy)
+#         if len(xcoords) % 2 == 0:
+#             delta_x = abs(xcoords[-1] - xcoords[-2])
+#             delta_y = abs(ycoords[-1] - ycoords[-2])
+#             print 'delta_x = %d, delta_y = %d' % (delta_x, delta_y)
+#         coords = [ix, iy]
+#         return coords
+#     # connect the onclick function to the to mouse press
+#     fig.canvas.mpl_connect('button_press_event', find_delta_onclick)
+#     """
+#     add a for each plot
+#     """
+#     legend = plt.legend(loc='upper left', fontsize='small')
+#     return plot
 
 def get_five_dyes(data, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
     """
@@ -299,6 +352,14 @@ if __name__ == "__main__":
 
     """3 Get 5 dyes"""
     x1 = get_five_dyes(pd1)
+
+    line_scanner1 = line_scanner(x1[4])
+    l1= line_scanner1.read_line()
+    k_baseline1 = K_Baseline(l1)
+    x_and_y_dict = k_baseline1.populate_x_and_y()
+
+    q1 = plot_dyes(x1, list_of_x=x_and_y_dict["x/quarter seconds"], list_of_y=x_and_y_dict["y/best-fit line"])
+    q1.set_title("k_baseline")
     twentysix = get_five_dyes(pd2)
     # x9 = get_five_dyes(filtered_data1)
     # x2 = get_five_dyes(filtered_data2)
