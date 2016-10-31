@@ -274,7 +274,7 @@ def k_baseline_subtraction(list_list_dyes):
 
 if __name__ == "__main__":
     # Folder where csv files are
-    folder = 'csv_files'
+    folder = '../csv_files'
     # file name variables
     AL = '10_13_AL_new_ibsen.csv'
     mat = '10_14_matrix.csv'
