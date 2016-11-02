@@ -129,24 +129,37 @@ def k_filter3(panda_table, steps, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167
         filtered_data.append(list(row.mean(axis=0)))
     return filtered_data
 
-def plot_one_dye(list_of_x, list_of_y):
-    fig = plt.figure()
-    plot = fig.add_subplot(111)
-    plot.plot(list_of_x, list_of_y, c="blue", label='New Baseline')
+# def plot_one_dye(list_of_x, list_of_y):
+#     fig = plt.figure()
+#     plot = fig.add_subplot(111)
+#     plot.plot(list_of_x, list_of_y, c="blue", label='New Baseline')
 
-def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = []):
+def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], scatter = False):
+    """
+
+    :param list_list_dyes:
+    :param list_of_baseline_x: optional list - list of
+    :param list_of_baseline_y: optional
+    :param scatter:
+    :return:
+    """
     fig = plt.figure()
     plot = fig.add_subplot(111)
 
     x_axis = [x for x in range(len(list_list_dyes[0]))]
-    # Plotting the actual color. Comment out if you don't want to plot one of them
+    y_axis = [x for x in range(len(list_list_dyes[1]))]
+    if scatter == True:
+        plot.scatter(list_of_baseline_x, list_of_baseline_y, c="blue", label='Scatter')
+    elif scatter == False:
+        plot.plot(list_of_baseline_x, list_of_baseline_y, c="blue", label='Plot')
     # plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
     # plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
     # plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
     plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
     # plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
+    # plot.plot(x_axis, y_axis, c="blue", label='Flu')
 
-    plot.plot(list_of_baseline_x, list_of_baseline_y, c="yellow", label='New Baseline')
+    # plot.scatter(list_of_baseline_x, list_of_baseline_y, c="black", label='New Baseline')
     """
     Set the x and y coordinate labels
     """
@@ -287,7 +300,7 @@ if __name__ == "__main__":
     folder = '../csv_files'
     # file name variables
     AL = '10_13_AL_new_ibsen.csv'
-    mat = '10_14_matrix.csv'
+    # mat = '10_14_matrix.csv'
     AL2 = '10_26_9mW_AL_(actual).csv'
     file_name = AL
     file_name2 = AL2
@@ -315,7 +328,11 @@ if __name__ == "__main__":
     k_baseline1 = K_Baseline(l1)
     x_and_y_dict = k_baseline1.populate_x_and_y()
 
-    q1 = plot_dyes(x1, list_of_baseline_x=x_and_y_dict["x/quarter seconds"], list_of_baseline_y=x_and_y_dict["y/best-fit line"])
+    # q1 = plot_dyes(x1)
+    # q1 = plot_dyes(x1, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
+    #                list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
+    q1 = plot_dyes(x1, list_of_baseline_x=l1["x/quarter seconds"],
+                   list_of_baseline_y=l1["y/best-fit line"], scatter=True)
     q1.set_title("k_baseline")
     twentysix = get_five_dyes(pd2)
     # x9 = get_five_dyes(filtered_data1)
@@ -353,21 +370,12 @@ if __name__ == "__main__":
     """6 Plot Data"""
     # p1 = plot_dyes(z)
     # p1.set_title(file_name + "__No filter")
-    p4 = plot_dyes(mat1)
-    p4.set_title(file_name + "8_step_filter, no baseline subtraction")
-    p4.grid(True)
-    p2=plot_dyes(mat2)
-    p2.set_title(file_name2 + "8_step_filter, no baseline subtraction")
-    p2.grid(True)
-    # p3=plot_dyes(mat3)
-    # p3.set_title(file_name + "__20")
-    # p8 = plot_dyes(twentysix)
-    # p8.set_title(file_name2 + " Raw")
-    # p7 = plot_dyes(mat11)
-    # p7.set_title(file_name2 + " Matrix correction")
-
-    # p10 = plot_dyes()
-    # p10.set_title()
+    # p4 = plot_dyes(mat1)
+    # p4.set_title(file_name + "8_step_filter, no baseline subtraction")
+    # p4.grid(True)
+    # p2=plot_dyes(mat2)
+    # p2.set_title(file_name2 + "8_step_filter, no baseline subtraction")
+    # p2.grid(True)
 
 
     """Filter w/ Timing"""
