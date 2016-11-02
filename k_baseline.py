@@ -2,9 +2,20 @@ import numpy as np
 import itertools
 """
 Line Scanner Class
+Author: Kevin Kim
+Date: 11/1/16
+Designed to create a baseline-subtraction algorithm
+Have two classes.
+1) Line_scanner
+2) K_Baseline (Kevin's Baseline)
 """
 class line_scanner:
     def __init__(self, object):
+        """
+        Scans the line and returns a dictionary containing lists of local min
+        :param object: list - a list of ADC-Count at a specific pixel/wavelength.
+        For example: line_scanner1 = line_scanner(x1[4])
+        """
         # self.local_max = np.array([])
         # self.local_min_dict = np.array([])
         # self.local_max = []
@@ -15,14 +26,16 @@ class line_scanner:
         }
         self.reading_line = object
 
-    def read_line(self):
+    def read_line(self, threshold_value=5500):
         """
         function that let's you read the reading_line.
+        :param threshold_value=5500 - value that sets the min number in order to be labeled as a min. 
         :return: list of 2-list
                 self.local_min_dict[0] = all the iterations (x)
                 self.local_min_dict[1] = all the values of the iterations (y)
         """
         i_counter = 0
+        pointer = 1
         uno = float
         dos = float
         tres = float
@@ -41,8 +54,9 @@ class line_scanner:
                 dos = tres
                 tres = i
                 i_counter += 1
-                if uno > dos and tres > dos and dos < 5500: # If local min, append to local_min_dict
-                    self.local_min_dict["x/quarter seconds"].append(i_counter)
+                pointer+=1
+                if uno > dos and tres > dos and dos < threshold_value: # If local min, append to local_min_dict
+                    self.local_min_dict["x/quarter seconds"].append(pointer)
                     self.local_min_dict["y/best-fit line"].append(dos)
         return self.local_min_dict
     # def get_reading_line(self):
@@ -56,6 +70,7 @@ class K_Baseline:
             "x/quarter seconds": [],
             "y/best-fit line": []
         }
+        # Dictionary that holds
         self.list_of_mins = list_of_local_mins
 
     def populate_x_and_y(self):
@@ -87,7 +102,7 @@ class K_Baseline:
                 x1 = x2
                 x2 = i0
 
-                i_counter+=1
+                i_counter += 1
 
                 # Equation
                 x_s = np.array([x0, x1, x2])

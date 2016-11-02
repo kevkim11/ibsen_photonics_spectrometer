@@ -11,12 +11,14 @@ from k_baseline import line_scanner, K_Baseline
 from os.path import join
 
 from datetime import datetime
+
 """
-Author: Kevin
+Author: Kevin Kim
 Date: 10/13/16
 Designed to use with the new ibsen output file
 Still need to convert to csv file though.
 """
+
 def load_file(csv):
     """
     :param csv is a string
@@ -147,10 +149,10 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     plot = fig.add_subplot(111)
 
     x_axis = [x for x in range(len(list_list_dyes[0]))]
-    y_axis = [x for x in range(len(list_list_dyes[1]))]
-    if scatter == True:
+
+    if scatter == True and len(list_of_baseline_x)!= 0:
         plot.scatter(list_of_baseline_x, list_of_baseline_y, c="blue", label='Scatter')
-    elif scatter == False:
+    elif scatter == False and len(list_of_baseline_x)!= 0:
         plot.plot(list_of_baseline_x, list_of_baseline_y, c="blue", label='Plot')
     # plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
     # plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
@@ -323,8 +325,8 @@ if __name__ == "__main__":
     """3 Get 5 dyes"""
     x1 = get_five_dyes(pd1)
 
-    line_scanner1 = line_scanner(x1[4])
-    l1= line_scanner1.read_line()
+    line_scanner1 = line_scanner(x1[3])
+    l1 = line_scanner1.read_line()
     k_baseline1 = K_Baseline(l1)
     x_and_y_dict = k_baseline1.populate_x_and_y()
 
@@ -332,7 +334,7 @@ if __name__ == "__main__":
     # q1 = plot_dyes(x1, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
     #                list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
     q1 = plot_dyes(x1, list_of_baseline_x=l1["x/quarter seconds"],
-                   list_of_baseline_y=l1["y/best-fit line"], scatter=True)
+                   list_of_baseline_y=l1["y/best-fit line"], scatter=False)
     q1.set_title("k_baseline")
     twentysix = get_five_dyes(pd2)
     # x9 = get_five_dyes(filtered_data1)
