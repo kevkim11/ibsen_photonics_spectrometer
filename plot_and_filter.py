@@ -333,8 +333,8 @@ if __name__ == "__main__":
     # q1 = plot_dyes(x1)
     # q1 = plot_dyes(x1, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
     #                list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
-    q1 = plot_dyes(x1, list_of_baseline_x=l1["x/quarter seconds"],
-                   list_of_baseline_y=l1["y/best-fit line"], scatter=False)
+    q1 = plot_dyes(x1, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
+                   list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
     q1.set_title("k_baseline")
     twentysix = get_five_dyes(pd2)
     # x9 = get_five_dyes(filtered_data1)

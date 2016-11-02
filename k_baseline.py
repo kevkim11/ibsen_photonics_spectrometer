@@ -29,7 +29,7 @@ class line_scanner:
     def read_line(self, threshold_value=5500):
         """
         function that let's you read the reading_line.
-        :param threshold_value=5500 - value that sets the min number in order to be labeled as a min. 
+        :param threshold_value=5500 - value that sets the min number in order to be labeled as a min.
         :return: list of 2-list
                 self.local_min_dict[0] = all the iterations (x)
                 self.local_min_dict[1] = all the values of the iterations (y)
@@ -115,3 +115,21 @@ class K_Baseline:
                     self.x_and_y["x/quarter seconds"].append(x)
                     self.x_and_y["y/best-fit line"].append(y)
         return self.x_and_y
+
+class baseline_subtraction(line_scanner, K_Baseline):
+    def __init__(self, five_dyes):
+        self.list_of_dyes = five_dyes
+
+    def perform_baseline_subtraction(self):
+        baseline_subtracted_five_dyes = []
+        for dye in self.list_of_dyes:
+            """
+            1) Scan line
+            2) Get Filtered Baseline
+            3) Subtract from dye.
+            """
+            line_scanner = line_scanner(dye)
+            l1 = line_scanner.read_line()
+            k_baseline = K_Baseline(l1)
+            x_and_y = k_baseline.populate_x_and_y()
+            
