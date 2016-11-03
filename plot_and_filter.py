@@ -6,7 +6,7 @@ import itertools
 # Custom Modules
 from matricies import *
 from baseline_subtraction_variables import *
-from k_baseline import line_scanner, K_Baseline
+from k_baseline import line_scanner, K_Baseline, baseline_subtraction_class
 
 from os.path import join
 
@@ -131,6 +131,49 @@ def k_filter3(panda_table, steps, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167
         filtered_data.append(list(row.mean(axis=0)))
     return filtered_data
 
+def plot_one_line(list_of_values, color="blue", label="label"):
+    """
+
+    :param list_of_values:
+    :return:
+    """
+    fig = plt.figure()
+    plot = fig.add_subplot(111)
+
+    x_axis = [x for x in range(len(list_of_values))]
+    plot.plot(x_axis, list_of_values, c=color, label=label)
+    """
+    Set the x and y coordinate labels
+    """
+    plot.set_xlabel('quarter Seconds')
+    plot.set_ylabel('ADC-Counts')
+    """
+    delta click event function
+    """
+    # Keep track of x/y coordinates, part of the find_delta_onclick
+    xcoords = []
+    ycoords = []
+    def find_delta_onclick(event):
+        global ix, iy
+        global coords
+        ix, iy = event.xdata, event.ydata
+        xcoords.append(ix)
+        ycoords.append(iy)
+        print 'x = %s, y = %s' % (ix, iy)
+        if len(xcoords) % 2 == 0:
+            delta_x = abs(xcoords[-1] - xcoords[-2])
+            delta_y = abs(ycoords[-1] - ycoords[-2])
+            print 'delta_x = %d, delta_y = %d' % (delta_x, delta_y)
+        coords = [ix, iy]
+        return coords
+    # connect the onclick function to the to mouse press
+    fig.canvas.mpl_connect('button_press_event', find_delta_onclick)
+    """
+    add a for each plot
+    """
+    legend = plt.legend(loc='upper left', fontsize='small')
+    return plot
+
 # def plot_one_dye(list_of_x, list_of_y):
 #     fig = plt.figure()
 #     plot = fig.add_subplot(111)
@@ -148,12 +191,12 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     fig = plt.figure()
     plot = fig.add_subplot(111)
 
-    x_axis = [x for x in range(len(list_list_dyes[0]))]
+    x_axis = [x for x in range(len(list_list_dyes[3]))]
 
     if scatter == True and len(list_of_baseline_x)!= 0:
-        plot.scatter(list_of_baseline_x, list_of_baseline_y, c="blue", label='Scatter')
+        plot.scatter(list_of_baseline_x, list_of_baseline_y, c="red", label='Scatter')
     elif scatter == False and len(list_of_baseline_x)!= 0:
-        plot.plot(list_of_baseline_x, list_of_baseline_y, c="blue", label='Plot')
+        plot.plot(list_of_baseline_x, list_of_baseline_y, c="red", label='Plot')
     # plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
     # plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
     # plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
@@ -328,13 +371,18 @@ if __name__ == "__main__":
     line_scanner1 = line_scanner(x1[3])
     l1 = line_scanner1.read_line()
     k_baseline1 = K_Baseline(l1)
-    x_and_y_dict = k_baseline1.populate_x_and_y()
+    x_and_y_dict = k_baseline1.populate_x_and_y(x1[3])
+
+    bs1 = baseline_subtraction_class(x1[3])
+    a = bs1.perform_baseline_subtraction()
 
     # q1 = plot_dyes(x1)
     # q1 = plot_dyes(x1, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
     #                list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
     q1 = plot_dyes(x1, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
                    list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
+    p2 = plot_one_line(a, label="k_baseline subtracted")
+    p2.set_title("Actually subtracted")
     q1.set_title("k_baseline")
     twentysix = get_five_dyes(pd2)
     # x9 = get_five_dyes(filtered_data1)
