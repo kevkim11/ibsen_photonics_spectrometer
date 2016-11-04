@@ -17,10 +17,6 @@ class line_scanner:
         :param object: list - a list of ADC-Count at a specific pixel/wavelength.
         For example: line_scanner1 = line_scanner(x1[4])
         """
-        # self.local_max = np.array([])
-        # self.local_min_dict = np.array([])
-        # self.local_max = []
-        # self.local_max_dict = {}
         self.local_min_dict = {
             "x/quarter seconds": [],
             "y/best-fit line": []

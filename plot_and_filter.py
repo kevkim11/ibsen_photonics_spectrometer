@@ -183,8 +183,8 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     """
 
     :param list_list_dyes:
-    :param list_of_baseline_x: optional list - list of
-    :param list_of_baseline_y: optional
+    :param list_of_baseline_x: optional list - list of x's to plot for the baseline to be subtracted
+    :param list_of_baseline_y: optional list - list of y's to plot for the baseline to be subtracted
     :param scatter:
     :return:
     """
@@ -194,9 +194,9 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     x_axis = [x for x in range(len(list_list_dyes[3]))]
 
     if scatter == True and len(list_of_baseline_x)!= 0:
-        plot.scatter(list_of_baseline_x, list_of_baseline_y, c="red", label='Scatter')
+        plot.scatter(list_of_baseline_x, list_of_baseline_y, c="black", label='Scatter')
     elif scatter == False and len(list_of_baseline_x)!= 0:
-        plot.plot(list_of_baseline_x, list_of_baseline_y, c="red", label='Plot')
+        plot.plot(list_of_baseline_x, list_of_baseline_y, c="black", label='Plot')
     # plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
     # plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
     # plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
@@ -339,28 +339,42 @@ def k_baseline_subtraction(list_list_dyes):
     :return:
     """
 
+def baseline_subtraction_steps_main(file_dir):
+    """
 
-if __name__ == "__main__":
-    # Folder where csv files are
-    folder = '../csv_files'
-    # file name variables
-    AL = '10_13_AL_new_ibsen.csv'
-    # mat = '10_14_matrix.csv'
-    AL2 = '10_26_9mW_AL_(actual).csv'
-    file_name = AL
-    file_name2 = AL2
+    :param file_dir:
+    :return:
+    """
+    """1) load file"""
+    pd = load_file(file_dir)
+    """2) Get 5 dyes"""
+    list_of_list_dyes = get_five_dyes(pd)
+    """3) K_Baseline Subtraction"""
+    line_scanner1 = line_scanner(list_of_list_dyes[3])
+    l1 = line_scanner1.read_line()
+    k_baseline1 = K_Baseline(l1)
+    x_and_y_dict = k_baseline1.populate_x_and_y(list_of_list_dyes[3])
+    bs1 = baseline_subtraction_class(list_of_list_dyes[3])
+    a = bs1.perform_baseline_subtraction()
+    """4) Plot Data"""
+    q1 = plot_dyes(list_of_list_dyes, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
+                   list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
+    q1.set_title(str(file_dir))
+    q2 = plot_one_line(a, color="red")
+    q2.set_title("Baseline subtracted")
+    print "done"
+    plt.show()
 
-    file_dir = join(folder, file_name)
-    file_dir2 = join(folder, file_name2)
+def previous_main(file_dir):
     """1 load file"""
     pd1 = load_file(file_dir)
-    pd2 = load_file(file_dir2)
+    # pd2 = load_file()
 
     """2 Filter"""
     startTime = datetime.now()
-    print "filter start time is "+str(startTime)
-    filtered_data1 = k_filter3(pd1, 8)
-    filtered_data2 = k_filter3(pd2, 8)
+    print "filter start time is " + str(startTime)
+    # filtered_data1 = k_filter3(pd1, 8)
+    # filtered_data2 = k_filter3(pd2, 8)
     # filtered_data3 = k_filter3(pd1, 20)
     # filtered_data3 = k_filter2(pd, 20)
     print "filter end time is " + str(datetime.now() - startTime)
@@ -394,8 +408,8 @@ if __name__ == "__main__":
     print "get dyes end time is " + str(datetime.now() - startTime)
 
     """4 Baseline Subtraction"""
-    y1 = baseline_subtraction(filtered_data1, ZERO_subtraction)
-    y2 = baseline_subtraction(filtered_data2, ZERO_subtraction)
+    # y1 = baseline_subtraction(filtered_data1, ZERO_subtraction)
+    # y2 = baseline_subtraction(filtered_data2, ZERO_subtraction)
     # y4 = baseline_subtraction(filtered_data3, ZERO_subtraction)
 
     # r1 = baseline_subtraction(a1, ZERO_subtraction)
@@ -438,3 +452,18 @@ if __name__ == "__main__":
 
     print "done"
     plt.show()
+
+if __name__ == "__main__":
+    # Folder where csv files are
+    folder = '../csv_files'
+    # file name variables
+    AL = '10_13_AL_new_ibsen.csv'
+    # mat = '10_14_matrix.csv'
+    AL2 = '10_26_9mW_AL_(actual).csv'
+    file_name = AL
+    file_name2 = AL2
+
+    file_dir = join(folder, file_name)
+    file_dir2 = join(folder, file_name2)
+
+    baseline_subtraction_steps_main(file_dir)
