@@ -33,7 +33,6 @@ def load_file(csv):
     for i in range(1, len(times) + 1):
         steps.append(i)
     data.columns = steps  # assign data's time into steps
-
     return data
 
 def k_filter(panda_table, steps):
@@ -59,6 +58,9 @@ def k_filter(panda_table, steps):
         df.drop(i, axis=1, inplace=True)
     return df
 
+"""
+*** Time Filter functions
+"""
 def mean(numbers):
     return float(sum(numbers)) / max(len(numbers), 1)
 
@@ -174,11 +176,6 @@ def plot_one_line(list_of_values, color="blue", label="label"):
     legend = plt.legend(loc='upper left', fontsize='small')
     return plot
 
-# def plot_one_dye(list_of_x, list_of_y):
-#     fig = plt.figure()
-#     plot = fig.add_subplot(111)
-#     plot.plot(list_of_x, list_of_y, c="blue", label='New Baseline')
-
 def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], scatter = False):
     """
 
@@ -258,6 +255,8 @@ def get_five_dyes(data, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
 def baseline_subtraction(list_list_dyes, sub):
     """
     Baseline subtraction based on lists of each dye and a list of the subtraction number.
+
+    Subtracts each dye in list_list_dyes with the respective ints in sub
     :param r1: list - Flu
     :param r2: list - Joe
     :param r3: list - TMR
@@ -453,7 +452,36 @@ def previous_main(file_dir):
     print "done"
     plt.show()
 
+def main(file_dir):
+    """
+
+    :param file_dir:
+    :return:
+    """
+    """1) load file"""
+    pd = load_file(file_dir)
+    """2) Get 5 dyes"""
+    list_of_list_dyes = get_five_dyes(pd)
+    """3) K_Baseline Subtraction"""
+    line_scanner1 = line_scanner(list_of_list_dyes[3])
+    l1 = line_scanner1.read_line()
+    k_baseline1 = K_Baseline(l1)
+    x_and_y_dict = k_baseline1.populate_x_and_y(list_of_list_dyes[3])
+
+    bs1 = baseline_subtraction_class(list_of_list_dyes[3])
+    a = bs1.perform_baseline_subtraction()
+    """4) Plot Data"""
+    plot1 = plot_dyes(list_of_list_dyes, scatter=False)
+    plot1.set_title(str(file_dir))
+    q2 = plot_one_line(a, color="red")
+    q2.set_title("Baseline subtracted")
+    print "done"
+    plt.show()
+
 if __name__ == "__main__":
+    '''
+    *** File Directory
+    '''
     # Folder where csv files are
     folder = '../csv_files'
     # file name variables
