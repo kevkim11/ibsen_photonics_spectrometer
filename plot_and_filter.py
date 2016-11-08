@@ -19,6 +19,7 @@ Designed to use with the new ibsen output file
 Still need to convert to csv file though.
 """
 
+
 def load_file(csv):
     """
     :param csv is a string
@@ -35,34 +36,14 @@ def load_file(csv):
     data.columns = steps  # assign data's time into steps
     return data
 
-def k_filter(panda_table, steps):
-    """
-    FINISHED
-    takes in a table and adds new columns to that table.
-    """
-    # Local Variable
-    list_of_column_values = list(panda_table.columns.values) # change this to index/row
-    # Copy the table
-    df = panda_table.copy()
-    for i in range(1, (len(list_of_column_values)-steps*2)+1):
-        columns = panda_table.ix[:, i: i+(steps*2)]
-        df[i+steps] = columns.mean(axis=1)
-    # Filter the new DataFrame
-    # Drop the left side of the DataFrame
-    for i in range(1, steps+1):
-        # print i
-        df.drop(i, axis=1, inplace=True)
-    # Drop the right side of the DataFrame
-    for i in range(len(list_of_column_values), (len(list_of_column_values)-steps), -1):
-        # print i
-        df.drop(i, axis=1, inplace=True)
-    return df
-
 """
 *** Time Filter functions
 """
+
+
 def mean(numbers):
     return float(sum(numbers)) / max(len(numbers), 1)
+
 
 def time_filter_single(l, steps):
     list_of_time_filtered = []
@@ -72,11 +53,47 @@ def time_filter_single(l, steps):
         list_of_time_filtered.append(aved)
     return list_of_time_filtered
 
+
 def time_filter(list_of_list, steps):
     new_list_of_list = []
     for i in list_of_list:
         new_list_of_list.append(time_filter_single(i, steps))
     return new_list_of_list
+
+
+def k_filter(panda_table, steps):
+    """
+    FINISHED
+    takes in a table and adds new columns to that table.
+    """
+    # Local Variable
+    list_of_column_values = list(panda_table.columns.values) # change this to index/row
+    # Copy the table
+    df = panda_table.copy()
+    # Convert  the time into incremenets starting at 1, then convert back later...
+    increments = []
+    for i in range(1,len(list_of_column_values)+1):
+        increments.append(i)
+    df.columns = increments
+    panda_table.columns = increments
+    # Filter
+    for i in range(1, (len(list_of_column_values)-steps*2)+1):
+        columns = panda_table.ix[:, i: i+(steps*2)]
+        df.loc[i+steps] = columns.mean(axis=1)
+    # Filter the new DataFrame
+    # Drop the left side of the DataFrame
+    for i in range(1, steps+1):
+        # print i
+        df.drop(i, axis=1, inplace=True)
+        list_of_column_values.pop(0)
+    # Drop the right side of the DataFrame
+    for i in range(len(list_of_column_values), (len(list_of_column_values)-steps), -1):
+        # print i
+        df.drop(i, axis=1, inplace=True)
+        list_of_column_values = list_of_column_values[:-1]
+    df.columns = list_of_column_values
+    return df
+
 
 def k_filter2(panda_table, steps):
     """
@@ -132,6 +149,39 @@ def k_filter3(panda_table, steps, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167
         row = panda_table.iloc[i-steps:i+steps+1]
         filtered_data.append(list(row.mean(axis=0)))
     return filtered_data
+
+
+def k_filter4(panda_table, pixel_steps, time_steps, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
+    """
+    Combination of time_averaging and k_filter.
+    Needed to combine so that I can make the filtering efficient by only
+    taking the subsets out.
+
+    Made the k_filter2 more efficient by just combining k_filter2 and get_five_dyes
+    :param panda_table:
+    :param pixel_steps:
+    :param flu:
+    :param joe:
+    :param tmr:
+    :param cxr:
+    :param wen:
+    :return:
+    """
+    list_of_pixel_numbers = [flu, joe, tmr, cxr, wen]
+    filtered_data = []
+    for i in list_of_pixel_numbers:
+        # a = i - pixel_steps
+        # b = i + pixel_steps
+        row = panda_table[i - pixel_steps:i + pixel_steps + 1]
+        time_filtered_data = row.copy()
+        list_of_row_values = list(row.columns.values)
+        for i in range(1, (len(list_of_row_values) - time_steps* 2) + 1):
+            columns = row.ix[:, i: i + (time_steps* 2)]
+            time_filtered_data.ix[:, i + time_steps] = columns.mean(axis=1)
+        time_averaged = list(time_filtered_data.mean(axis=0))
+        filtered_data.append(time_averaged)
+    return filtered_data
+
 
 def plot_one_line(list_of_values, color="blue", label="label"):
     """
@@ -194,11 +244,11 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
         plot.scatter(list_of_baseline_x, list_of_baseline_y, c="black", label='Scatter')
     elif scatter == False and len(list_of_baseline_x)!= 0:
         plot.plot(list_of_baseline_x, list_of_baseline_y, c="black", label='Plot')
-    # plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
-    # plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
-    # plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
+    plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
+    plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
+    plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
     plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
-    # plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
+    plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
     # plot.plot(x_axis, y_axis, c="blue", label='Flu')
 
     # plot.scatter(list_of_baseline_x, list_of_baseline_y, c="black", label='New Baseline')
@@ -350,7 +400,7 @@ def baseline_subtraction_steps_main(file_dir):
     list_of_list_dyes = get_five_dyes(pd)
     """3) K_Baseline Subtraction"""
     line_scanner1 = line_scanner(list_of_list_dyes[3])
-    l1 = line_scanner1.read_line()
+    l1 = line_scanner1.read_line(threshold_value=50000)
     k_baseline1 = K_Baseline(l1)
     x_and_y_dict = k_baseline1.populate_x_and_y(list_of_list_dyes[3])
     bs1 = baseline_subtraction_class(list_of_list_dyes[3])
@@ -478,6 +528,36 @@ def main(file_dir):
     print "done"
     plt.show()
 
+def proper_main(file_dir):
+    """
+    The correct order of how to view the allelic ladder.
+    1) Load file
+    2) Time Averaging/K_filter/Get 5 dyes
+    3) Matrix Correction
+    4) K_Baseline Subtraction
+    5) Plot
+    :param file_dir:
+    :return:
+    """
+
+    """1) load file"""
+    pd = load_file(file_dir)
+    """2) Time Averaging/K_filter/Get 5 dyes"""
+    kfiltered_list_of_list = k_filter4(pd, pixel_steps=1, time_steps=2)
+    """3) Matrix Correction"""
+    matrix_corrected_list_of_list = matrix_correction(kfiltered_list_of_list, matrix_MOD_AL)
+    print "hello mate"
+    # tf1 = time_filter(list_of_list_dyes, 1)
+    """4) baseline_subtraction"""
+    bs1_subs = []
+    for i in matrix_corrected_list_of_list:
+        bs1 = baseline_subtraction_class(i)
+        bs1_sub = bs1.perform_baseline_subtraction()
+        bs1_subs.append((bs1_sub))
+    p1 = plot_dyes(bs1_subs)
+    print "done"
+    plt.show()
+
 if __name__ == "__main__":
     '''
     *** File Directory
@@ -494,4 +574,6 @@ if __name__ == "__main__":
     file_dir = join(folder, file_name)
     file_dir2 = join(folder, file_name2)
 
-    baseline_subtraction_steps_main(file_dir)
+    proper_main(file_dir)
+
+    # baseline_subtraction_steps_main(file_dir)
