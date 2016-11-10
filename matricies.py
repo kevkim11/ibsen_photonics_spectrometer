@@ -25,12 +25,14 @@ ZERO_matrix = np.array([[1, 0, 0, 0, 0],
                         [0, 0, 1, 0, 0],
                         [0, 0, 0, 1, 0],
                         [0, 0, 0, 0, 1]])
+
 # Matrix MODIFIED w/ EZRA for non-normailzed data. Only baseline subtraction (10-21-16) 20mW
 matrix_MOD = np.array([[1, -0.2, 0.095, -0.138, 0],
                        [-0.63, 1, -0.22, 0.07, -0.013],
                        [0.03, -0.55, 1.0, -0.32, -0.018],
                        [0.02, 0.05, -0.57, 1, 0],
                        [0, 0, 0.03, -0.145, 1]])
+
 # Allelic Ladder 20mW
 matrix_MOD_AL = np.array([[1, -0.2, 0.095, -0.138, 0],
                        [-0.63, 1, -0.22, 0.07, -0.013],

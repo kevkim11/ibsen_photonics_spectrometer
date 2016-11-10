@@ -5,7 +5,7 @@ import itertools
 
 # Custom Modules
 from matricies import *
-from baseline_subtraction_variables import *
+# from baseline_subtraction_variables import *
 from k_baseline import line_scanner, K_Baseline, baseline_subtraction_class
 
 from os.path import join
@@ -542,19 +542,22 @@ def proper_main(file_dir):
 
     """1) load file"""
     pd = load_file(file_dir)
+    print "File done loading"
     """2) Time Averaging/K_filter/Get 5 dyes"""
-    kfiltered_list_of_list = k_filter4(pd, pixel_steps=1, time_steps=2)
+    kfiltered_list_of_list = k_filter4(pd, pixel_steps=8, time_steps=2)
+    print "k_filter4 is done"
     """3) Matrix Correction"""
-    matrix_corrected_list_of_list = matrix_correction(kfiltered_list_of_list, matrix_MOD_AL)
-    print "hello mate"
-    # tf1 = time_filter(list_of_list_dyes, 1)
+    matrix_corrected_list_of_list = matrix_correction(kfiltered_list_of_list, matrix_MOD2)
+    print "Matrix Correction is done"
     """4) baseline_subtraction"""
     bs1_subs = []
     for i in matrix_corrected_list_of_list:
         bs1 = baseline_subtraction_class(i)
         bs1_sub = bs1.perform_baseline_subtraction()
         bs1_subs.append((bs1_sub))
-    p1 = plot_dyes(bs1_subs)
+    print "k_baseline subtraction is done"
+    """5) plot"""
+    p1 = plot_dyes(matrix_corrected_list_of_list)
     print "done"
     plt.show()
 
@@ -565,7 +568,7 @@ if __name__ == "__main__":
     # Folder where csv files are
     folder = '../csv_files'
     # file name variables
-    AL = '10_13_AL_new_ibsen.csv'
+    AL = '10_24_10mW_matrix_(fresh).csv'
     # mat = '10_14_matrix.csv'
     AL2 = '10_26_9mW_AL_(actual).csv'
     file_name = AL
