@@ -556,8 +556,8 @@ def main(file_dir):
     """4) Plot Data"""
     plot1 = plot_dyes(list_of_list_dyes, list_of_baseline_x=l1["x/quarter seconds"], list_of_baseline_y=l1["y/best-fit line"], scatter=True)
     plot1.set_title(str(file_dir))
-    q2 = plot_one_line(a, color="red")
-    q2.set_title("Baseline subtracted")
+    # q2 = plot_one_line(a, color="red")
+    # q2.set_title("Baseline subtracted")
     print "done"
     plt.show()
 

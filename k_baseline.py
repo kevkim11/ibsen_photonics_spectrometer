@@ -52,7 +52,41 @@ class line_scanner:
                 tres = i
                 i_counter += 1
                 pointer+=1
-                if uno > dos and tres > dos and dos < threshold_value: # If local min, append to local_min_dict
+                if uno > dos and tres > dos: # If local min, append to local_min_dict
+                    self.local_min_dict["x/quarter seconds"].append(pointer)
+                    self.local_min_dict["y/best-fit line"].append(dos)
+        return self.local_min_dict
+
+    def find_all_local_max(self):
+        """
+        function that let's you read the reading_line.
+        :param threshold_value=5500 - value that sets the min number in order to be labeled as a min.
+        :return: list of 2-list
+                self.local_min_dict[0] = all the iterations (x)
+                self.local_min_dict[1] = all the values of the iterations (y)
+        """
+        i_counter = 0
+        pointer = 1
+        uno = float
+        dos = float
+        tres = float
+        for i in self.reading_line:
+            if i_counter == 0:
+                uno = i
+                i_counter += 1
+            elif i_counter == 1:
+                dos = i
+                i_counter += 1
+            elif i_counter == 2:
+                tres = i
+                i_counter += 1
+            else:
+                uno = dos
+                dos = tres
+                tres = i
+                i_counter += 1
+                pointer += 1
+                if uno < dos and tres < dos:  # If local min, append to local_min_dict
                     self.local_min_dict["x/quarter seconds"].append(pointer)
                     self.local_min_dict["y/best-fit line"].append(dos)
         return self.local_min_dict
