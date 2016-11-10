@@ -244,11 +244,11 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
         plot.scatter(list_of_baseline_x, list_of_baseline_y, c="black", label='Scatter')
     elif scatter == False and len(list_of_baseline_x)!= 0:
         plot.plot(list_of_baseline_x, list_of_baseline_y, c="black", label='Plot')
-    plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
-    plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
-    plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
+    # plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
+    # plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
+    # plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
     plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
-    plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
+    # plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
     # plot.plot(x_axis, y_axis, c="blue", label='Flu')
 
     # plot.scatter(list_of_baseline_x, list_of_baseline_y, c="black", label='New Baseline')
@@ -400,7 +400,7 @@ def baseline_subtraction_steps_main(file_dir):
     list_of_list_dyes = get_five_dyes(pd)
     """3) K_Baseline Subtraction"""
     line_scanner1 = line_scanner(list_of_list_dyes[3])
-    l1 = line_scanner1.read_line(threshold_value=50000)
+    l1 = line_scanner1.find_all_local_min(threshold_value=50000)
     k_baseline1 = K_Baseline(l1)
     x_and_y_dict = k_baseline1.populate_x_and_y(list_of_list_dyes[3])
     bs1 = baseline_subtraction_class(list_of_list_dyes[3])
@@ -432,7 +432,7 @@ def previous_main(file_dir):
     x1 = get_five_dyes(pd1)
 
     line_scanner1 = line_scanner(x1[3])
-    l1 = line_scanner1.read_line()
+    l1 = line_scanner1.find_all_local_min()
     k_baseline1 = K_Baseline(l1)
     x_and_y_dict = k_baseline1.populate_x_and_y(x1[3])
 
@@ -502,32 +502,6 @@ def previous_main(file_dir):
     print "done"
     plt.show()
 
-def main(file_dir):
-    """
-
-    :param file_dir:
-    :return:
-    """
-    """1) load file"""
-    pd = load_file(file_dir)
-    """2) Get 5 dyes"""
-    list_of_list_dyes = get_five_dyes(pd)
-    """3) K_Baseline Subtraction"""
-    line_scanner1 = line_scanner(list_of_list_dyes[3])
-    l1 = line_scanner1.read_line()
-    k_baseline1 = K_Baseline(l1)
-    x_and_y_dict = k_baseline1.populate_x_and_y(list_of_list_dyes[3])
-
-    bs1 = baseline_subtraction_class(list_of_list_dyes[3])
-    a = bs1.perform_baseline_subtraction()
-    """4) Plot Data"""
-    plot1 = plot_dyes(list_of_list_dyes, scatter=False)
-    plot1.set_title(str(file_dir))
-    q2 = plot_one_line(a, color="red")
-    q2.set_title("Baseline subtracted")
-    print "done"
-    plt.show()
-
 def proper_main(file_dir):
     """
     The correct order of how to view the allelic ladder.
@@ -561,6 +535,32 @@ def proper_main(file_dir):
     print "done"
     plt.show()
 
+def main(file_dir):
+    """
+
+    :param file_dir:
+    :return:
+    """
+    """1) load file"""
+    pd = load_file(file_dir)
+    """2) Get 5 dyes"""
+    list_of_list_dyes = get_five_dyes(pd)
+    """3) K_Baseline Subtraction"""
+    line_scanner1 = line_scanner(list_of_list_dyes[3])
+    l1 = line_scanner1.find_all_local_min()
+    k_baseline1 = K_Baseline(l1)
+    x_and_y_dict = k_baseline1.populate_x_and_y(list_of_list_dyes[3])
+
+    bs1 = baseline_subtraction_class(list_of_list_dyes[3])
+    a = bs1.perform_baseline_subtraction()
+    """4) Plot Data"""
+    plot1 = plot_dyes(list_of_list_dyes, list_of_baseline_x=l1["x/quarter seconds"], list_of_baseline_y=l1["y/best-fit line"], scatter=True)
+    plot1.set_title(str(file_dir))
+    q2 = plot_one_line(a, color="red")
+    q2.set_title("Baseline subtracted")
+    print "done"
+    plt.show()
+
 if __name__ == "__main__":
     '''
     *** File Directory
@@ -568,7 +568,7 @@ if __name__ == "__main__":
     # Folder where csv files are
     folder = '../csv_files'
     # file name variables
-    AL = '10_24_10mW_matrix_(fresh).csv'
+    AL = '10_13_AL_new_ibsen.csv'
     # mat = '10_14_matrix.csv'
     AL2 = '10_26_9mW_AL_(actual).csv'
     file_name = AL
@@ -577,6 +577,6 @@ if __name__ == "__main__":
     file_dir = join(folder, file_name)
     file_dir2 = join(folder, file_name2)
 
-    proper_main(file_dir)
+    main(file_dir)
 
     # baseline_subtraction_steps_main(file_dir)

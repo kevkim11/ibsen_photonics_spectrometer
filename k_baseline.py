@@ -23,7 +23,7 @@ class line_scanner:
         }
         self.reading_line = object
 
-    def read_line(self, threshold_value=5500):
+    def find_all_local_min(self, threshold_value=5500):
         """
         function that let's you read the reading_line.
         :param threshold_value=5500 - value that sets the min number in order to be labeled as a min.
@@ -142,7 +142,7 @@ class baseline_subtraction_class:
         """
         self.dye = dye
         self.line_scanner = line_scanner(self.dye)
-        self.l1 = self.line_scanner.read_line()
+        self.l1 = self.line_scanner.find_all_local_min()
         self.k_baseline = K_Baseline(self.l1)
 
     def perform_baseline_subtraction(self):
