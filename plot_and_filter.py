@@ -249,7 +249,6 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     # plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
     plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
     # plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
-    # plot.plot(x_axis, y_axis, c="blue", label='Flu')
 
     # plot.scatter(list_of_baseline_x, list_of_baseline_y, c="black", label='New Baseline')
     """
@@ -535,7 +534,7 @@ def proper_main(file_dir):
     print "done"
     plt.show()
 
-def main(file_dir):
+def main2(file_dir):
     """
 
     :param file_dir:
@@ -547,7 +546,8 @@ def main(file_dir):
     list_of_list_dyes = get_five_dyes(pd)
     """3) K_Baseline Subtraction"""
     line_scanner1 = line_scanner(list_of_list_dyes[3])
-    l1 = line_scanner1.find_all_local_min()
+    l1 = line_scanner1.find_all_local_max()
+
     k_baseline1 = K_Baseline(l1)
     x_and_y_dict = k_baseline1.populate_x_and_y(list_of_list_dyes[3])
 
@@ -561,6 +561,58 @@ def main(file_dir):
     print "done"
     plt.show()
 
+def main(file_dir):
+    """
+    The correct order of how to view the allelic ladder.
+    1) Load file
+    2) Time Averaging/K_filter/Get 5 dyes
+    3) Matrix Correction
+    4) K_Baseline Subtraction
+    5) Plot
+    :param file_dir:
+    :return:
+    """
+
+    """1) load file"""
+    pd = load_file(file_dir)
+    print "File done loading"
+    """2) Time Averaging/K_filter/Get 5 dyes"""
+    kfiltered_list_of_list = k_filter4(pd, pixel_steps=8, time_steps=4)
+    none_filtered_list_of_list = get_five_dyes(pd)
+    print "k_filter4 is done"
+    """3) Matrix Correction"""
+    matrix_corrected_list_of_list = matrix_correction(kfiltered_list_of_list, matrix_MOD_AL)
+    # matrix_corrected_list_of_list2 = matrix_correction(kfiltered_list_of_list, ZERO_matrix)
+    matrix_corrected_list_of_list2 = matrix_correction(none_filtered_list_of_list, matrix_MOD_AL)
+    print "Matrix Correction is done"
+    """4) K baseline_subtraction"""
+    line_scanner1 = line_scanner(matrix_corrected_list_of_list[3])
+    l1 = line_scanner1.find_all_local_min()
+
+    line_scanner2 = line_scanner(matrix_corrected_list_of_list2[3])
+    l2 = line_scanner2.find_all_local_min()
+
+    # k_baseline1 = K_Baseline(l1)
+    # x_and_y_dict = k_baseline1.populate_x_and_y(matrix_corrected_list_of_list[3])
+
+    bs1 = baseline_subtraction_class(matrix_corrected_list_of_list[3])
+    a = bs1.perform_baseline_subtraction()
+
+    print "k_baseline subtraction is done"
+    """5) plot"""
+    p1 = plot_dyes(matrix_corrected_list_of_list,
+                   list_of_baseline_x=l1["x/quarter seconds"],
+                   list_of_baseline_y=l1["y/best-fit line"],
+                   scatter=True)
+    p1.set_title(str("baseline subtracted"))
+    p2 = plot_dyes(matrix_corrected_list_of_list2,
+                   list_of_baseline_x=l2["x/quarter seconds"],
+                   list_of_baseline_y=l2["y/best-fit line"],
+                   scatter=True)
+    p2.set_title(str("Not Matrix Corrected"))
+    print "done"
+    plt.show()
+
 if __name__ == "__main__":
     '''
     *** File Directory
@@ -568,7 +620,7 @@ if __name__ == "__main__":
     # Folder where csv files are
     folder = '../csv_files'
     # file name variables
-    AL = '10_13_AL_new_ibsen.csv'
+    AL = '10_13_AL_new_ibsen_modified.csv'
     # mat = '10_14_matrix.csv'
     AL2 = '10_26_9mW_AL_(actual).csv'
     file_name = AL
