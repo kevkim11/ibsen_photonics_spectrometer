@@ -178,10 +178,28 @@ def k_filter4(panda_table, pixel_steps, time_steps, flu=905, joe=956, tmr=1000, 
         for i in range(1, (len(list_of_row_values) - time_steps* 2) + 1):
             columns = row.ix[:, i: i + (time_steps* 2)]
             time_filtered_data.ix[:, i + time_steps] = columns.mean(axis=1)
+        """ Output filtered Data"""
+        time_filtered_data.to_csv('k4_filtered_' + file_name)  # output
         time_averaged = list(time_filtered_data.mean(axis=0))
         filtered_data.append(time_averaged)
     return filtered_data
 
+def data_compression(df, steps=4):
+    # TODO
+    """
+
+    :param df:
+    :param steps:
+    :return:
+    """
+    times = list(df.columns.values)
+    startTime = datetime.now()
+    print "Compression Start " + str(startTime)
+    for i in range(1, 1+len(times)):
+        if i%steps != 0:
+            df.drop(i, axis=1, inplace=True)
+    print "Compression took " + str(datetime.now() - startTime)
+    return df
 
 def plot_one_line(list_of_values, color="blue", label="label"):
     """
@@ -372,13 +390,17 @@ def set_threshold(list_list_dyes, threshold_value):
     tmr2 = []
     cxr2 = []
     wen2 = []
-    [flu2.append(threshold_value) if i < threshold_value else flu2.append(i) for i in list_list_dyes[0]]
-    [joe2.append(threshold_value) if i < threshold_value else joe2.append(i) for i in list_list_dyes[1]]
-    [tmr2.append(threshold_value) if i < threshold_value else tmr2.append(i) for i in list_list_dyes[2]]
-    [cxr2.append(threshold_value) if i < threshold_value else cxr2.append(i) for i in list_list_dyes[3]]
-    [wen2.append(threshold_value) if i < threshold_value else wen2.append(i) for i in list_list_dyes[4]]
-
+    [flu2.append(0) if i < threshold_value else flu2.append(i-threshold_value) for i in list_list_dyes[0]]
+    [joe2.append(0) if i < threshold_value else joe2.append(i-threshold_value) for i in list_list_dyes[1]]
+    [tmr2.append(0) if i < threshold_value else tmr2.append(i-threshold_value) for i in list_list_dyes[2]]
+    [cxr2.append(0) if i < threshold_value else cxr2.append(i-threshold_value) for i in list_list_dyes[3]]
+    [wen2.append(0) if i < threshold_value else wen2.append(i-threshold_value) for i in list_list_dyes[4]]
+    # [modified_dye.append(0) if i < threshold_value else modified_dye.append(i) for i in dye]
     return [flu2, joe2, tmr2, cxr2, wen2]
+
+def min_peak_filter(dict):
+
+    return
 
 def k_baseline_subtraction(list_list_dyes):
     """
@@ -572,25 +594,30 @@ def main(file_dir):
     :param file_dir:
     :return:
     """
-
+    startTime = datetime.now()
+    print "Starting at " + str(startTime)
     """1) load file"""
     pd = load_file(file_dir)
-    print "File done loading"
+    print "File done loading " + str(datetime.now() - startTime)
+    # pd1 = data_compression(pd)
+    # print "Compression done at " + str(datetime.now() - startTime)
     """2) Time Averaging/K_filter/Get 5 dyes"""
     kfiltered_list_of_list = k_filter4(pd, pixel_steps=8, time_steps=4)
-    none_filtered_list_of_list = get_five_dyes(pd)
-    print "k_filter4 is done"
+    # none_filtered_list_of_list = get_five_dyes(pd)
+    print "k_filter4 is done " + str(datetime.now() - startTime)
     """3) Matrix Correction"""
     matrix_corrected_list_of_list = matrix_correction(kfiltered_list_of_list, matrix_MOD_AL)
+    """ set_threshold..."""
+    matrix_corrected_list_of_list = set_threshold(matrix_corrected_list_of_list, 250)
     # matrix_corrected_list_of_list2 = matrix_correction(kfiltered_list_of_list, ZERO_matrix)
-    matrix_corrected_list_of_list2 = matrix_correction(none_filtered_list_of_list, matrix_MOD_AL)
-    print "Matrix Correction is done"
+    # matrix_corrected_list_of_list2 = matrix_correction(none_filtered_list_of_list, matrix_MOD_AL)
+    print "Matrix Correction is done " + str(datetime.now() - startTime)
     """4) K baseline_subtraction"""
     line_scanner1 = line_scanner(matrix_corrected_list_of_list[3])
     l1 = line_scanner1.find_all_local_min()
 
-    line_scanner2 = line_scanner(matrix_corrected_list_of_list2[3])
-    l2 = line_scanner2.find_all_local_min()
+    # line_scanner2 = line_scanner(matrix_corrected_list_of_list2[3])
+    # l2 = line_scanner2.find_all_local_min()
 
     # k_baseline1 = K_Baseline(l1)
     # x_and_y_dict = k_baseline1.populate_x_and_y(matrix_corrected_list_of_list[3])
@@ -598,20 +625,25 @@ def main(file_dir):
     bs1 = baseline_subtraction_class(matrix_corrected_list_of_list[3])
     a = bs1.perform_baseline_subtraction()
 
-    print "k_baseline subtraction is done"
+    print "k_baseline subtraction is done " + str(datetime.now() - startTime)
     """5) plot"""
     p1 = plot_dyes(matrix_corrected_list_of_list,
                    list_of_baseline_x=l1["x/quarter seconds"],
                    list_of_baseline_y=l1["y/best-fit line"],
                    scatter=True)
     p1.set_title(str("baseline subtracted"))
-    p2 = plot_dyes(matrix_corrected_list_of_list2,
-                   list_of_baseline_x=l2["x/quarter seconds"],
-                   list_of_baseline_y=l2["y/best-fit line"],
-                   scatter=True)
-    p2.set_title(str("Not Matrix Corrected"))
-    print "done"
+    # p2 = plot_dyes(matrix_corrected_list_of_list2,
+    #                list_of_baseline_x=l2["x/quarter seconds"],
+    #                list_of_baseline_y=l2["y/best-fit line"],
+    #                scatter=True)
+    # p2.set_title(str("Not filtered"))
+    print "done " + str(datetime.now() - startTime)
     plt.show()
+
+def main3(file_dir):
+    """1) load file"""
+    pd = load_file(file_dir)
+    data_compression(pd)
 
 if __name__ == "__main__":
     '''
