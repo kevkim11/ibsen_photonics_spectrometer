@@ -6,11 +6,12 @@ import itertools
 # Custom Modules
 from matricies import *
 # from baseline_subtraction_variables import *
-from k_baseline import line_scanner, K_Baseline, baseline_subtraction_class
+from k_baseline import *
 
 from os.path import join
 
 from datetime import datetime
+startTime = datetime.now()
 
 """
 Author: Kevin Kim
@@ -144,8 +145,8 @@ def k_filter3(panda_table, steps, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167
     list_of_pixel_numbers = [flu, joe, tmr, cxr, wen]
     filtered_data = []
     for i in list_of_pixel_numbers:
-        a = i-steps
-        b = i+steps
+        # a = i-steps
+        # b = i+steps
         row = panda_table.iloc[i-steps:i+steps+1]
         filtered_data.append(list(row.mean(axis=0)))
     return filtered_data
@@ -158,6 +159,8 @@ def k_filter4(panda_table, pixel_steps, time_steps, flu=905, joe=956, tmr=1000, 
     taking the subsets out.
 
     Made the k_filter2 more efficient by just combining k_filter2 and get_five_dyes
+
+    Also outputs a csv file of the filtered data. It's a 5 row df.
     :param panda_table:
     :param pixel_steps:
     :param flu:
@@ -170,18 +173,20 @@ def k_filter4(panda_table, pixel_steps, time_steps, flu=905, joe=956, tmr=1000, 
     list_of_pixel_numbers = [flu, joe, tmr, cxr, wen]
     filtered_data = []
     for i in list_of_pixel_numbers:
-        # a = i - pixel_steps
-        # b = i + pixel_steps
         row = panda_table[i - pixel_steps:i + pixel_steps + 1]
         time_filtered_data = row.copy()
         list_of_row_values = list(row.columns.values)
         for i in range(1, (len(list_of_row_values) - time_steps* 2) + 1):
             columns = row.ix[:, i: i + (time_steps* 2)]
             time_filtered_data.ix[:, i + time_steps] = columns.mean(axis=1)
-        """ Output filtered Data"""
-        time_filtered_data.to_csv('k4_filtered_' + file_name)  # output
+        # """ Output filtered Data"""
+        # time_filtered_data.to_csv('k4_filtered_' + file_name)  # output
         time_averaged = list(time_filtered_data.mean(axis=0))
         filtered_data.append(time_averaged)
+    filtered_df = pd.DataFrame(filtered_data, index=list_of_pixel_numbers)
+    """ Output filtered Data"""
+    filtered_df.to_csv('../csv_files/k4_filtered_'+ str(pixel_steps)+"X"+str(time_steps) + "_" +file_name)  # output
+    print "k_filter4 and output is done " + str(datetime.now() - startTime)
     return filtered_data
 
 def data_compression(df, steps=4):
@@ -435,93 +440,55 @@ def baseline_subtraction_steps_main(file_dir):
     print "done"
     plt.show()
 
-def previous_main(file_dir):
-    """1 load file"""
-    pd1 = load_file(file_dir)
-    # pd2 = load_file()
 
-    """2 Filter"""
-    startTime = datetime.now()
-    print "filter start time is " + str(startTime)
-    # filtered_data1 = k_filter3(pd1, 8)
-    # filtered_data2 = k_filter3(pd2, 8)
-    # filtered_data3 = k_filter3(pd1, 20)
-    # filtered_data3 = k_filter2(pd, 20)
-    print "filter end time is " + str(datetime.now() - startTime)
+def local_min_filter(dict_of_local_mins, plus_or_minus = 7):
+    """
 
-    """3 Get 5 dyes"""
-    x1 = get_five_dyes(pd1)
+    :param dict_of_local_mins:
+    :return:
+    """
+    x = dict_of_local_mins["x/quarter seconds"]
+    y = dict_of_local_mins["y/best-fit line"]
 
-    line_scanner1 = line_scanner(x1[3])
-    l1 = line_scanner1.find_all_local_min()
-    k_baseline1 = K_Baseline(l1)
-    x_and_y_dict = k_baseline1.populate_x_and_y(x1[3])
+    """
+    function that let's you read the reading_line.
+    :param threshold_value=5500 - value that sets the min number in order to be labeled as a min.
+    :return: list of 2-list
+            self.local_min_dict[0] = all the iterations (x)
+            self.local_min_dict[1] = all the values of the iterations (y)
+    """
+    i_counter = 0
+    pointer = 1
+    x_left = float
+    x_right = float
+    y_left = float
+    y_right = float
 
-    bs1 = baseline_subtraction_class(x1[3])
-    a = bs1.perform_baseline_subtraction()
-
-    # q1 = plot_dyes(x1)
-    # q1 = plot_dyes(x1, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
-    #                list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
-    q1 = plot_dyes(x1, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
-                   list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
-    p2 = plot_one_line(a, label="k_baseline subtracted")
-    p2.set_title("Actually subtracted")
-    q1.set_title("k_baseline")
-    twentysix = get_five_dyes(pd2)
-    # x9 = get_five_dyes(filtered_data1)
-    # x2 = get_five_dyes(filtered_data2)
-    # x3 = get_five_dyes(filtered_data3)
-    # a1 = get_five_dyes(filtered_data1)
-    # b1 = get_five_dyes(filtered_data2)
-    # c1 = get_five_dyes(filtered_data3)
-    print "get dyes end time is " + str(datetime.now() - startTime)
-
-    """4 Baseline Subtraction"""
-    # y1 = baseline_subtraction(filtered_data1, ZERO_subtraction)
-    # y2 = baseline_subtraction(filtered_data2, ZERO_subtraction)
-    # y4 = baseline_subtraction(filtered_data3, ZERO_subtraction)
-
-    # r1 = baseline_subtraction(a1, ZERO_subtraction)
-    # s1 = baseline_subtraction(b1, ZERO_subtraction)
-    # r1 = baseline_subtraction(filtered_data1, matrix_subtraction_10mW)
-    # s1 = baseline_subtraction(filtered_data2, matrix_subtraction_9mW)
-
-    # t1 = baseline_subtraction(c1, ZERO_subtraction)
-    print "baseline_subtraction end time is " + str(datetime.now() - startTime)
-
-    """5 Matrix Correction"""
-    mat1 = matrix_correction(y1, matrix_MOD)
-    mat2 = matrix_correction(y2, matrix_MOD2)
-    # mat11 = matrix_correction(twentysix, matrix_MOD2)
-    print "matrix correction end time is " + str(datetime.now() - startTime)
-
-    """5.5 Time averaging/filter"""
-    # t1 = time_filter(y1, 8)
-    # t2 = time_filter(mat1, 8)
-    # t3 = time_filter(mat1, 14)
-    # t4 = time_filter(mat1, 20)
-    """6 Plot Data"""
-    # p1 = plot_dyes(z)
-    # p1.set_title(file_name + "__No filter")
-    # p4 = plot_dyes(mat1)
-    # p4.set_title(file_name + "8_step_filter, no baseline subtraction")
-    # p4.grid(True)
-    # p2=plot_dyes(mat2)
-    # p2.set_title(file_name2 + "8_step_filter, no baseline subtraction")
-    # p2.grid(True)
+    for x_iter, y_iter in itertools.izip(x, y):
+        if i_counter == 0:
+            x_left = x_iter
+            y_left = y_iter
+            i_counter+=1
+        elif i_counter == 1:
+            x_right = x_iter
+            y_right = y_iter
+            i_counter+=1
+        else:
+            x_left = x_right
+            y_left = y_right
+            x_right = x_iter
+            y_right = y_iter
+            # if (x_right - 15) < x_left:
 
 
-    """Filter w/ Timing"""
-    # startTime = datetime.now()
-    # print startTime
-    # Filter
-    # new_data2 = k_filter2(new_data, 7) # filter
-    # new_data2.to_csv('filtered_'+file_name) # output
-    # print datetime.now() - startTime
 
-    print "done"
-    plt.show()
+            # if uno > (dos-plus_or_minus) and tres > dos:
+                # self.local_min_dict["x/quarter seconds"].append(pointer)
+                # self.local_min_dict["y/best-fit line"].append(dos)
+    # return self.local_min_dict
+    return
+
+
 
 def proper_main(file_dir):
     """
@@ -594,7 +561,6 @@ def main(file_dir):
     :param file_dir:
     :return:
     """
-    startTime = datetime.now()
     print "Starting at " + str(startTime)
     """1) load file"""
     pd = load_file(file_dir)
@@ -602,11 +568,65 @@ def main(file_dir):
     # pd1 = data_compression(pd)
     # print "Compression done at " + str(datetime.now() - startTime)
     """2) Time Averaging/K_filter/Get 5 dyes"""
-    kfiltered_list_of_list = k_filter4(pd, pixel_steps=8, time_steps=4)
+    kfiltered_list_of_list = k_filter4(pd, pixel_steps=8, time_steps=10)
     # none_filtered_list_of_list = get_five_dyes(pd)
     print "k_filter4 is done " + str(datetime.now() - startTime)
+    # """3) Matrix Correction"""
+    # matrix_corrected_list_of_list = matrix_correction(kfiltered_list_of_list, matrix_MOD_AL)
+    # """ set_threshold..."""
+    # matrix_corrected_list_of_list = set_threshold(matrix_corrected_list_of_list, 250)
+    # # matrix_corrected_list_of_list2 = matrix_correction(kfiltered_list_of_list, ZERO_matrix)
+    # # matrix_corrected_list_of_list2 = matrix_correction(none_filtered_list_of_list, matrix_MOD_AL)
+    # print "Matrix Correction is done " + str(datetime.now() - startTime)
+    # """4) K baseline_subtraction"""
+    # line_scanner1 = line_scanner(matrix_corrected_list_of_list[3])
+    # l1 = line_scanner1.find_all_local_min()
+    #
+    # # line_scanner2 = line_scanner(matrix_corrected_list_of_list2[3])
+    # # l2 = line_scanner2.find_all_local_min()
+    #
+    # # k_baseline1 = K_Baseline(l1)
+    # # x_and_y_dict = k_baseline1.populate_x_and_y(matrix_corrected_list_of_list[3])
+    #
+    # bs1 = baseline_subtraction_class(matrix_corrected_list_of_list[3])
+    # a = bs1.perform_baseline_subtraction()
+    #
+    # print "k_baseline subtraction is done " + str(datetime.now() - startTime)
+    # """5) plot"""
+    # p1 = plot_dyes(matrix_corrected_list_of_list,
+    #                list_of_baseline_x=l1["x/quarter seconds"],
+    #                list_of_baseline_y=l1["y/best-fit line"],
+    #                scatter=True)
+    # p1.set_title(str("baseline subtracted"))
+    # # p2 = plot_dyes(matrix_corrected_list_of_list2,
+    # #                list_of_baseline_x=l2["x/quarter seconds"],
+    # #                list_of_baseline_y=l2["y/best-fit line"],
+    # #                scatter=True)
+    # # p2.set_title(str("Not filtered"))
+    # print "done " + str(datetime.now() - startTime)
+    # plt.show()
+
+def main3(file_dir):
+    """1) load file"""
+    pd = load_file(file_dir)
+    data_compression(pd)
+
+def main4(filtered_file_dir, raw_file_dir):
+    """
+    Main to load processed data's into and plot
+    """
+    print "Starting at " + str(startTime)
+    """1) load file"""
+    processed_data = pd.read_csv(filtered_file_dir, index_col=0)
+    print "File done loading " + str(datetime.now() - startTime)
+    kfiltered_list_of_list = get_five_dyes(processed_data)
+    print "k_filter4 is done " + str(datetime.now() - startTime)
+    """2) load raw data"""
+    raw_data = load_file(raw_file_dir)
+    kfiltered3_list_of_list = k_filter3(raw_data, steps=8)
     """3) Matrix Correction"""
     matrix_corrected_list_of_list = matrix_correction(kfiltered_list_of_list, matrix_MOD_AL)
+    matrix_corrected_list_of_list_RAW = matrix_correction(kfiltered3_list_of_list, matrix_MOD_AL)
     """ set_threshold..."""
     matrix_corrected_list_of_list = set_threshold(matrix_corrected_list_of_list, 250)
     # matrix_corrected_list_of_list2 = matrix_correction(kfiltered_list_of_list, ZERO_matrix)
@@ -615,15 +635,23 @@ def main(file_dir):
     """4) K baseline_subtraction"""
     line_scanner1 = line_scanner(matrix_corrected_list_of_list[3])
     l1 = line_scanner1.find_all_local_min()
+    # l2 = line_scanner1.find_all_local_max()
+
 
     # line_scanner2 = line_scanner(matrix_corrected_list_of_list2[3])
     # l2 = line_scanner2.find_all_local_min()
 
-    # k_baseline1 = K_Baseline(l1)
-    # x_and_y_dict = k_baseline1.populate_x_and_y(matrix_corrected_list_of_list[3])
+    k_baseline1 = K_Baseline(l1)
+    x_and_y_dict = k_baseline1.populate_x_and_y(matrix_corrected_list_of_list[3])
 
-    bs1 = baseline_subtraction_class(matrix_corrected_list_of_list[3])
-    a = bs1.perform_baseline_subtraction()
+    bs1_subs = []
+    for i in matrix_corrected_list_of_list_RAW:
+        bs1 = baseline_subtraction_class2(i, x_and_y_dict)
+        bs1_sub = bs1.perform_baseline_subtraction()
+        bs1_subs.append((bs1_sub))
+
+    # bs1 = baseline_subtraction_class(matrix_corrected_list_of_list_RAW[3])
+    # a = bs1.perform_baseline_subtraction()
 
     print "k_baseline subtraction is done " + str(datetime.now() - startTime)
     """5) plot"""
@@ -631,19 +659,36 @@ def main(file_dir):
                    list_of_baseline_x=l1["x/quarter seconds"],
                    list_of_baseline_y=l1["y/best-fit line"],
                    scatter=True)
-    p1.set_title(str("baseline subtracted"))
-    # p2 = plot_dyes(matrix_corrected_list_of_list2,
-    #                list_of_baseline_x=l2["x/quarter seconds"],
-    #                list_of_baseline_y=l2["y/best-fit line"],
-    #                scatter=True)
-    # p2.set_title(str("Not filtered"))
-    print "done " + str(datetime.now() - startTime)
-    plt.show()
+    p1.set_title(str(filtered_file_dir))
+    p2 = plot_dyes(bs1_subs, scatter=False)
+    p2.set_title(str(filtered_file_dir+" BS1_sub"))
 
-def main3(file_dir):
+    p3 = plot_dyes(matrix_corrected_list_of_list_RAW)
+    p3.set_title("Raw")
+
+    print "done " + str(datetime.now() - startTime)
+    return
+
+def main5(file_dir):
+    """
+    Just for uploading one file_dir
+    :param file_dir:
+    :return:
+    """
+    print "Starting at " + str(startTime)
     """1) load file"""
-    pd = load_file(file_dir)
-    data_compression(pd)
+    processed_data = pd.read_csv(file_dir, index_col=0)
+    print "File done loading " + str(datetime.now() - startTime)
+    kfiltered_list_of_list = get_five_dyes(processed_data)
+    print "k_filter4 is done " + str(datetime.now() - startTime)
+    """3) Matrix Correction"""
+    matrix_corrected_list_of_list = matrix_correction(kfiltered_list_of_list, matrix_MOD_AL)
+    """4) K baseline_subtraction"""
+    line_scanner1 = line_scanner(matrix_corrected_list_of_list[3])
+    l1 = line_scanner1.find_all_local_min()
+    p1 = plot_dyes(matrix_corrected_list_of_list,list_of_baseline_x=l1["x/quarter seconds"], list_of_baseline_y=l1["y/best-fit line"],
+                   scatter=True)
+    p1.set_title(file_dir)
 
 if __name__ == "__main__":
     '''
@@ -655,12 +700,18 @@ if __name__ == "__main__":
     AL = '10_13_AL_new_ibsen_modified.csv'
     # mat = '10_14_matrix.csv'
     AL2 = '10_26_9mW_AL_(actual).csv'
-    file_name = AL
-    file_name2 = AL2
+    file_name = 'k4_filtered_8X4_10_13_AL_new_ibsen_modified.csv'
+    file_name2 = AL
+    file_name3 = 'k4_filtered_8X10_10_13_AL_new_ibsen_modified.csv'
 
     file_dir = join(folder, file_name)
     file_dir2 = join(folder, file_name2)
+    file_dir3 = join(folder, file_name3)
 
-    main(file_dir)
+    # a = main4(file_dir)
+    b = main4(file_dir3, file_dir2)
+    main5(file_dir)
 
+    plt.show()
+    # main(file_dir2)
     # baseline_subtraction_steps_main(file_dir)

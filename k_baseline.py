@@ -27,7 +27,7 @@ class line_scanner:
         }
         self.reading_line = object
 
-    def find_all_local_min(self, threshold_value=250):
+    def find_all_local_min(self, threshold_value=100):
         """
         function that let's you read the reading_line.
         :param threshold_value=5500 - value that sets the min number in order to be labeled as a min.
@@ -60,7 +60,7 @@ class line_scanner:
                 tres = i
                 i_counter += 1
                 pointer+=1
-                if uno > dos and tres > dos: # If local min, append to local_min_dict
+                if uno > dos and tres > dos and dos > threshold_value: # If local min, append to local_min_dict
                     self.local_min_dict["x/quarter seconds"].append(pointer)
                     self.local_min_dict["y/best-fit line"].append(dos)
         return self.local_min_dict
@@ -192,18 +192,32 @@ class baseline_subtraction_class:
 
         :return: list - list of new dye values with the k_baseline subtraction applied.
         """
-        baseline_subtrated_dye = []
         """
         1) Scan line
         2) Get Filtered Baseline
         3) Subtract from dye.
         """
         x_and_y = self.k_baseline.populate_x_and_y(self.dye)
-        baseline_subtrated_dye = []
+        baseline_subtracted_dye = []
         for i0, i1 in itertools.izip(self.dye, x_and_y["y/best-fit line"]):
             baseline_sub_value = i0-i1
-            baseline_subtrated_dye.append(baseline_sub_value)
-        return baseline_subtrated_dye
+            baseline_subtracted_dye.append(baseline_sub_value)
+        return baseline_subtracted_dye
 
+class baseline_subtraction_class2:
+    """
+    Class that can take in different dye and x_and_y_baseline dict.
+    Dye = Matrix Corrected and Moving Average data
+    x_and_y_baseline_dict = dictionary containing the lines.
+    """
+    def __init__(self, dye, x_and_y_baseline_dict):
+        self.dye = dye
+        self.x_and_y_baseline_dict = x_and_y_baseline_dict
 
+    def perform_baseline_subtraction(self):
+        baseline_subtracted_dye = []
+        for i0, i1 in itertools.izip(self.dye, self.x_and_y_baseline_dict["y/best-fit line"]):
+            baseline_sub_value = i0 - i1
+            baseline_subtracted_dye.append(baseline_sub_value)
+        return baseline_subtracted_dye
 
