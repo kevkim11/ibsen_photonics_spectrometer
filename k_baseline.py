@@ -10,6 +10,8 @@ Have two classes.
 2) K_Baseline (Kevin's Baseline)
 3) baseline_subtraction_class - Combine line_scanner and K_Baseline
 """
+
+
 class line_scanner:
     def __init__(self, object):
         """
@@ -98,7 +100,6 @@ class line_scanner:
                     self.local_max_dict["x/quarter seconds"].append(pointer)
                     self.local_max_dict["y/best-fit line"].append(dos)
         return self.local_max_dict
-    # def get_reading_line(self):
 
 """
 k_baseline class
@@ -175,6 +176,7 @@ class K_Baseline:
 
                 # if i_counter < len()
         return self.x_and_y
+
 
 class baseline_subtraction_class:
     def __init__(self, dye):

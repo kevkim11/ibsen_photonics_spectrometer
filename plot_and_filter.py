@@ -11,7 +11,6 @@ from k_baseline import *
 from os.path import join
 
 from datetime import datetime
-startTime = datetime.now()
 
 """
 Author: Kevin Kim
@@ -19,6 +18,8 @@ Date: 10/13/16
 Designed to use with the new ibsen output file
 Still need to convert to csv file though.
 """
+# variable that can keep track of running time
+startTime = datetime.now()
 
 
 def load_file(csv):
@@ -60,7 +61,9 @@ def time_filter(list_of_list, steps):
     for i in list_of_list:
         new_list_of_list.append(time_filter_single(i, steps))
     return new_list_of_list
-
+"""
+*** k_filter - Moving average filters
+"""
 
 def k_filter(panda_table, steps):
     """
@@ -98,6 +101,8 @@ def k_filter(panda_table, steps):
 
 def k_filter2(panda_table, steps):
     """
+    Moving average (None Efficient)
+    Does a moving average on the entire dataframe.
     :param panda_table - Pandas dataframe w/ column_label = time and row_label = wavelengths (float)
     :param steps - the number of rows used to calculate the average. Formula is new_ave = (steps*2) +1
 
@@ -132,6 +137,7 @@ def k_filter2(panda_table, steps):
 
 def k_filter3(panda_table, steps, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
     """
+    Moving average (Efficient)
     Made the k_filter2 more efficient by just combining k_filter2 and get_five_dyes
     :param panda_table:
     :param steps:
@@ -189,22 +195,23 @@ def k_filter4(panda_table, pixel_steps, time_steps, flu=905, joe=956, tmr=1000, 
     print "k_filter4 and output is done " + str(datetime.now() - startTime)
     return filtered_data
 
-def data_compression(df, steps=4):
-    # TODO
-    """
 
-    :param df:
-    :param steps:
-    :return:
-    """
-    times = list(df.columns.values)
-    startTime = datetime.now()
-    print "Compression Start " + str(startTime)
-    for i in range(1, 1+len(times)):
-        if i%steps != 0:
-            df.drop(i, axis=1, inplace=True)
-    print "Compression took " + str(datetime.now() - startTime)
-    return df
+# def data_compression(df, steps=4):
+#     # TODO
+#     """
+#
+#     :param df:
+#     :param steps:
+#     :return:
+#     """
+#     times = list(df.columns.values)
+#     startTime = datetime.now()
+#     print "Compression Start " + str(startTime)
+#     for i in range(1, 1+len(times)):
+#         if i%steps != 0:
+#             df.drop(i, axis=1, inplace=True)
+#     print "Compression took " + str(datetime.now() - startTime)
+#     return df
 
 def plot_one_line(list_of_values, color="blue", label="label"):
     """
@@ -251,6 +258,8 @@ def plot_one_line(list_of_values, color="blue", label="label"):
 
 def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], scatter = False):
     """
+    Takes a list of list of the five dyes and then plots each of them.
+    Commenting out some of the lines if I don't want to plot them.
 
     :param list_list_dyes:
     :param list_of_baseline_x: optional list - list of x's to plot for the baseline to be subtracted
@@ -273,7 +282,6 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
     # plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
 
-    # plot.scatter(list_of_baseline_x, list_of_baseline_y, c="black", label='New Baseline')
     """
     Set the x and y coordinate labels
     """
@@ -305,6 +313,7 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     """
     legend = plt.legend(loc='upper left', fontsize='small')
     return plot
+
 
 def get_five_dyes(data, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
     """
@@ -403,9 +412,6 @@ def set_threshold(list_list_dyes, threshold_value):
     # [modified_dye.append(0) if i < threshold_value else modified_dye.append(i) for i in dye]
     return [flu2, joe2, tmr2, cxr2, wen2]
 
-def min_peak_filter(dict):
-
-    return
 
 def k_baseline_subtraction(list_list_dyes):
     """
@@ -441,52 +447,52 @@ def baseline_subtraction_steps_main(file_dir):
     plt.show()
 
 
-def local_min_filter(dict_of_local_mins, plus_or_minus = 7):
-    """
-
-    :param dict_of_local_mins:
-    :return:
-    """
-    x = dict_of_local_mins["x/quarter seconds"]
-    y = dict_of_local_mins["y/best-fit line"]
-
-    """
-    function that let's you read the reading_line.
-    :param threshold_value=5500 - value that sets the min number in order to be labeled as a min.
-    :return: list of 2-list
-            self.local_min_dict[0] = all the iterations (x)
-            self.local_min_dict[1] = all the values of the iterations (y)
-    """
-    i_counter = 0
-    pointer = 1
-    x_left = float
-    x_right = float
-    y_left = float
-    y_right = float
-
-    for x_iter, y_iter in itertools.izip(x, y):
-        if i_counter == 0:
-            x_left = x_iter
-            y_left = y_iter
-            i_counter+=1
-        elif i_counter == 1:
-            x_right = x_iter
-            y_right = y_iter
-            i_counter+=1
-        else:
-            x_left = x_right
-            y_left = y_right
-            x_right = x_iter
-            y_right = y_iter
-            # if (x_right - 15) < x_left:
-
-
-
-            # if uno > (dos-plus_or_minus) and tres > dos:
-                # self.local_min_dict["x/quarter seconds"].append(pointer)
-                # self.local_min_dict["y/best-fit line"].append(dos)
-    # return self.local_min_dict
-    return
+# def local_min_filter(dict_of_local_mins, plus_or_minus = 7):
+#     """
+#     # Working Progress
+#     :param dict_of_local_mins:
+#     :return:
+#     """
+#     x = dict_of_local_mins["x/quarter seconds"]
+#     y = dict_of_local_mins["y/best-fit line"]
+#
+#     """
+#     function that let's you read the reading_line.
+#     :param threshold_value=5500 - value that sets the min number in order to be labeled as a min.
+#     :return: list of 2-list
+#             self.local_min_dict[0] = all the iterations (x)
+#             self.local_min_dict[1] = all the values of the iterations (y)
+#     """
+#     i_counter = 0
+#     pointer = 1
+#     x_left = float
+#     x_right = float
+#     y_left = float
+#     y_right = float
+#
+#     for x_iter, y_iter in itertools.izip(x, y):
+#         if i_counter == 0:
+#             x_left = x_iter
+#             y_left = y_iter
+#             i_counter+=1
+#         elif i_counter == 1:
+#             x_right = x_iter
+#             y_right = y_iter
+#             i_counter+=1
+#         else:
+#             x_left = x_right
+#             y_left = y_right
+#             x_right = x_iter
+#             y_right = y_iter
+#             # if (x_right - 15) < x_left:
+#
+#
+#
+#             # if uno > (dos-plus_or_minus) and tres > dos:
+#                 # self.local_min_dict["x/quarter seconds"].append(pointer)
+#                 # self.local_min_dict["y/best-fit line"].append(dos)
+#     # return self.local_min_dict
+#     return
 
 
 
@@ -606,11 +612,6 @@ def main(file_dir):
     # print "done " + str(datetime.now() - startTime)
     # plt.show()
 
-def main3(file_dir):
-    """1) load file"""
-    pd = load_file(file_dir)
-    data_compression(pd)
-
 def main4(filtered_file_dir, raw_file_dir):
     """
     Main to load processed data's into and plot
@@ -669,7 +670,7 @@ def main4(filtered_file_dir, raw_file_dir):
     print "done " + str(datetime.now() - startTime)
     return
 
-def main5(file_dir):
+def main_load_one(file_dir):
     """
     Just for uploading one file_dir
     :param file_dir:
@@ -690,6 +691,83 @@ def main5(file_dir):
                    scatter=True)
     p1.set_title(file_dir)
 
+def find_new_baseline_minimums(dye, x_and_y_dict):
+    """
+
+    :param dye:
+    :param x_and_y_dict:
+    :return:
+    """
+    new_x_and_y_minimums = {
+        "x/quarter seconds": x_and_y_dict["x/quarter seconds"],
+        "y/best-fit line": []
+    }
+    for i in x_and_y_dict["x/quarter seconds"]:
+        new_x_and_y_minimums["y/best-fit line"].append(dye[i])
+    return new_x_and_y_minimums
+
+def main1(filtered_file_dir, raw_file_dir):
+    """
+        Main to find x from time averaged data and then find local min and basline subtract from non time averaged data.
+    """
+    print "Starting at " + str(startTime)
+    """1) load file"""
+    processed_data = pd.read_csv(filtered_file_dir, index_col=0)
+    raw_data = load_file(raw_file_dir)
+    print "File done loading " + str(datetime.now() - startTime)
+    """2) Time/Moving Average - Get 5 Dyes"""
+    time_ave_data_list_of_list = get_five_dyes(processed_data)
+    non_time_ave_data_list_of_list = k_filter3(raw_data, steps=8)
+    print "k_filter4 is done " + str(datetime.now() - startTime)
+    """3) Matrix Correction"""
+    matrix_corrected_time_ave = matrix_correction(time_ave_data_list_of_list, matrix_MOD_AL)
+    matrix_corrected_non_time_ave = matrix_correction(non_time_ave_data_list_of_list, matrix_MOD_AL)
+    """ set_threshold..."""
+    time_ave_list_of_list = set_threshold(matrix_corrected_time_ave, 250)
+    non_time_ave_list_of_list = set_threshold(matrix_corrected_non_time_ave, 250)
+    print "Matrix Correction is done " + str(datetime.now() - startTime)
+    """4) K baseline_subtraction"""
+    line_scanner1 = line_scanner(time_ave_list_of_list[3])
+    local_min_dict1 = line_scanner1.find_all_local_min()
+    local_min_dict2 = find_new_baseline_minimums(non_time_ave_list_of_list[3], local_min_dict1)
+
+
+
+
+    # # line_scanner2 = line_scanner(matrix_corrected_list_of_list2[3])
+    # # l2 = line_scanner2.find_all_local_min()
+    #
+    k_baseline1 = K_Baseline(local_min_dict2)
+    x_and_y_dict = k_baseline1.populate_x_and_y(non_time_ave_list_of_list[3])
+    #
+    bs1_subs = []
+    for i in non_time_ave_list_of_list:
+        bs1 = baseline_subtraction_class2(i, x_and_y_dict)
+        bs1_sub = bs1.perform_baseline_subtraction()
+        bs1_subs.append((bs1_sub))
+
+    # bs1 = baseline_subtraction_class(matrix_corrected_list_of_list_RAW[3])
+    # a = bs1.perform_baseline_subtraction()
+
+    print "k_baseline subtraction is done " + str(datetime.now() - startTime)
+    """5) plot"""
+    p1 = plot_dyes(non_time_ave_list_of_list,
+                   list_of_baseline_x=local_min_dict2["x/quarter seconds"],
+                   list_of_baseline_y=local_min_dict2["y/best-fit line"],
+                   scatter=True)
+    p1.set_title("Local Minimums Found")
+    p2 = plot_dyes(non_time_ave_list_of_list,
+                   list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
+                   list_of_baseline_y=x_and_y_dict["y/best-fit line"],
+                   scatter=False)
+    p2.set_title("Baseline Drawn")
+    p3 = plot_dyes(bs1_subs)
+    p3.set_title("Baseline Subtracted")
+
+
+    print "done " + str(datetime.now() - startTime)
+    return
+
 if __name__ == "__main__":
     '''
     *** File Directory
@@ -697,11 +775,9 @@ if __name__ == "__main__":
     # Folder where csv files are
     folder = '../csv_files'
     # file name variables
-    AL = '10_13_AL_new_ibsen_modified.csv'
-    # mat = '10_14_matrix.csv'
     AL2 = '10_26_9mW_AL_(actual).csv'
     file_name = 'k4_filtered_8X4_10_13_AL_new_ibsen_modified.csv'
-    file_name2 = AL
+    file_name2 = '10_13_AL_new_ibsen_modified.csv'
     file_name3 = 'k4_filtered_8X10_10_13_AL_new_ibsen_modified.csv'
 
     file_dir = join(folder, file_name)
@@ -709,8 +785,8 @@ if __name__ == "__main__":
     file_dir3 = join(folder, file_name3)
 
     # a = main4(file_dir)
-    b = main4(file_dir3, file_dir2)
-    main5(file_dir)
+    main1(file_dir3, file_dir2)
+    # main_load_one(file_dir)
 
     plt.show()
     # main(file_dir2)
