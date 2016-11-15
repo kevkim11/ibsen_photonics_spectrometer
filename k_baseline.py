@@ -218,8 +218,11 @@ class baseline_subtraction_class2:
 
     def perform_baseline_subtraction(self):
         baseline_subtracted_dye = []
-        for i0, i1 in itertools.izip(self.dye, self.x_and_y_baseline_dict["y/best-fit line"]):
-            baseline_sub_value = i0 - i1
-            baseline_subtracted_dye.append(baseline_sub_value)
-        return baseline_subtracted_dye
+        if len(self.x_and_y_baseline_dict["y/best-fit line"]) == 0:
+            return self.dye
+        else:
+            for i0, i1 in itertools.izip(self.dye, self.x_and_y_baseline_dict["y/best-fit line"]):
+                baseline_sub_value = i0 - i1
+                baseline_subtracted_dye.append(baseline_sub_value)
+            return baseline_subtracted_dye
 

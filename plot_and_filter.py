@@ -273,12 +273,12 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     x_axis = [x for x in range(len(list_list_dyes[3]))]
 
     if scatter == True and len(list_of_baseline_x)!= 0:
-        plot.scatter(list_of_baseline_x, list_of_baseline_y, c="black", label='Scatter')
+        plot.scatter(list_of_baseline_x, list_of_baseline_y, c="red", label='Scatter')
     elif scatter == False and len(list_of_baseline_x)!= 0:
-        plot.plot(list_of_baseline_x, list_of_baseline_y, c="black", label='Plot')
-    # plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
-    # plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
-    # plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
+        plot.plot(list_of_baseline_x, list_of_baseline_y, c="red", label='Plot')
+    plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
+    plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
+    plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
     plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
     # plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
 
@@ -725,42 +725,49 @@ def main1(filtered_file_dir, raw_file_dir):
     """ set_threshold..."""
     time_ave_list_of_list = set_threshold(matrix_corrected_time_ave, 250)
     non_time_ave_list_of_list = set_threshold(matrix_corrected_non_time_ave, 250)
+    # p0 = plot_dyes(non_time_ave_list_of_list)
+    # p0.set_title("non_time_ave_data_list_of_list")
     print "Matrix Correction is done " + str(datetime.now() - startTime)
     """4) K baseline_subtraction"""
-    line_scanner1 = line_scanner(time_ave_list_of_list[3])
-    local_min_dict1 = line_scanner1.find_all_local_min()
-    local_min_dict2 = find_new_baseline_minimums(non_time_ave_list_of_list[3], local_min_dict1)
+    list_of_x_and_y = []
+    for i in range(5):
+        line_scanner1 = line_scanner(time_ave_list_of_list[i])
+        local_min_dict1 = line_scanner1.find_all_local_min()
+        local_min_dict2 = find_new_baseline_minimums(non_time_ave_list_of_list[i], local_min_dict1)
 
+        # p00 = plot_dyes(time_ave_list_of_list,
+        #                 list_of_baseline_x=local_min_dict1["x/quarter seconds"],
+        #                 list_of_baseline_y=local_min_dict1["y/best-fit line"],
+        #                 scatter=True)
+        # p00.set_title("time_ave_data_list_of_list")
 
-
-
-    # # line_scanner2 = line_scanner(matrix_corrected_list_of_list2[3])
-    # # l2 = line_scanner2.find_all_local_min()
-    #
-    k_baseline1 = K_Baseline(local_min_dict2)
-    x_and_y_dict = k_baseline1.populate_x_and_y(non_time_ave_list_of_list[3])
-    #
+        k_baseline1 = K_Baseline(local_min_dict2)
+        x_and_y_dict = k_baseline1.populate_x_and_y(non_time_ave_list_of_list[i])
+        list_of_x_and_y.append(x_and_y_dict)
+        #
     bs1_subs = []
+    count = 0
     for i in non_time_ave_list_of_list:
-        bs1 = baseline_subtraction_class2(i, x_and_y_dict)
+        bs1 = baseline_subtraction_class2(i, list_of_x_and_y[count])
         bs1_sub = bs1.perform_baseline_subtraction()
         bs1_subs.append((bs1_sub))
+        count += 1
 
     # bs1 = baseline_subtraction_class(matrix_corrected_list_of_list_RAW[3])
     # a = bs1.perform_baseline_subtraction()
 
     print "k_baseline subtraction is done " + str(datetime.now() - startTime)
     """5) plot"""
-    p1 = plot_dyes(non_time_ave_list_of_list,
-                   list_of_baseline_x=local_min_dict2["x/quarter seconds"],
-                   list_of_baseline_y=local_min_dict2["y/best-fit line"],
-                   scatter=True)
-    p1.set_title("Local Minimums Found")
-    p2 = plot_dyes(non_time_ave_list_of_list,
-                   list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
-                   list_of_baseline_y=x_and_y_dict["y/best-fit line"],
-                   scatter=False)
-    p2.set_title("Baseline Drawn")
+    # p1 = plot_dyes(non_time_ave_list_of_list,
+    #                list_of_baseline_x=local_min_dict2["x/quarter seconds"],
+    #                list_of_baseline_y=local_min_dict2["y/best-fit line"],
+    #                scatter=True)
+    # p1.set_title("Local Minimums Found")
+    # p2 = plot_dyes(non_time_ave_list_of_list,
+    #                list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
+    #                list_of_baseline_y=x_and_y_dict["y/best-fit line"],
+    #                scatter=False)
+    # p2.set_title("Baseline Drawn")
     p3 = plot_dyes(bs1_subs)
     p3.set_title("Baseline Subtracted")
 
