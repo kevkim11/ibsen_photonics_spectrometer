@@ -5,7 +5,6 @@ import itertools
 
 # Custom Modules
 from matricies import *
-# from baseline_subtraction_variables import *
 from k_baseline import *
 
 from os.path import join
@@ -280,7 +279,7 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
     plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
     plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
-    # plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
+    plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
 
     """
     Set the x and y coordinate labels
@@ -313,6 +312,7 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     """
     legend = plt.legend(loc='upper left', fontsize='small')
     return plot
+#TODO Need to to find out which get_five_dyes is the actual one.
 
 
 def get_five_dyes(data, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
@@ -331,6 +331,25 @@ def get_five_dyes(data, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
     a3 = data.ix[tmr].tolist()
     a4 = data.ix[cxr].tolist()
     a5 = data.ix[wen].tolist()
+    return [a1, a2, a3, a4, a5]
+
+
+def get_five_dyes2(data, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
+    """
+    Returns five lists with flu, joe, tmr, and wen plots at their respective pixels/wavelength
+    :param data: pandas dataframe
+    :param flu: ints/pixels
+    :param joe: ints/pixels
+    :param tmr: ints/pixels
+    :param cxr: ints/pixels
+    :param wen: ints/pixels
+    :return: lists
+    """
+    a1 = data.loc[str(flu)].tolist()
+    a2 = data.loc[str(joe)].tolist()
+    a3 = data.loc[str(tmr)].tolist()
+    a4 = data.loc[str(cxr)].tolist()
+    a5 = data.loc[str(wen)].tolist()
     return [a1, a2, a3, a4, a5]
 
 def baseline_subtraction(list_list_dyes, sub):
@@ -447,55 +466,6 @@ def baseline_subtraction_steps_main(file_dir):
     plt.show()
 
 
-# def local_min_filter(dict_of_local_mins, plus_or_minus = 7):
-#     """
-#     # Working Progress
-#     :param dict_of_local_mins:
-#     :return:
-#     """
-#     x = dict_of_local_mins["x/quarter seconds"]
-#     y = dict_of_local_mins["y/best-fit line"]
-#
-#     """
-#     function that let's you read the reading_line.
-#     :param threshold_value=5500 - value that sets the min number in order to be labeled as a min.
-#     :return: list of 2-list
-#             self.local_min_dict[0] = all the iterations (x)
-#             self.local_min_dict[1] = all the values of the iterations (y)
-#     """
-#     i_counter = 0
-#     pointer = 1
-#     x_left = float
-#     x_right = float
-#     y_left = float
-#     y_right = float
-#
-#     for x_iter, y_iter in itertools.izip(x, y):
-#         if i_counter == 0:
-#             x_left = x_iter
-#             y_left = y_iter
-#             i_counter+=1
-#         elif i_counter == 1:
-#             x_right = x_iter
-#             y_right = y_iter
-#             i_counter+=1
-#         else:
-#             x_left = x_right
-#             y_left = y_right
-#             x_right = x_iter
-#             y_right = y_iter
-#             # if (x_right - 15) < x_left:
-#
-#
-#
-#             # if uno > (dos-plus_or_minus) and tres > dos:
-#                 # self.local_min_dict["x/quarter seconds"].append(pointer)
-#                 # self.local_min_dict["y/best-fit line"].append(dos)
-#     # return self.local_min_dict
-#     return
-
-
-
 def proper_main(file_dir):
     """
     The correct order of how to view the allelic ladder.
@@ -529,6 +499,7 @@ def proper_main(file_dir):
     print "done"
     plt.show()
 
+
 def main2(file_dir):
     """
 
@@ -555,6 +526,7 @@ def main2(file_dir):
     # q2.set_title("Baseline subtracted")
     print "done"
     plt.show()
+
 
 def main(file_dir):
     """
@@ -775,6 +747,23 @@ def main1(filtered_file_dir, raw_file_dir):
     print "done " + str(datetime.now() - startTime)
     return
 
+def main_get_five_dyes_and_plot(file_dir):
+    # data = pd.read_csv(file_dir, index_col=0)
+    data1 = load_file(file_dir)
+    time_ave_data_list_of_list = get_five_dyes2(data1)
+    p1 = plot_dyes(time_ave_data_list_of_list)
+    plt.show()
+    print "hi"
+
+def main_conversion_310(file_dir):
+    data = load_file(file_dir)
+    five_dyes = get_five_dyes(data)
+    df = pd.DataFrame(five_dyes)
+    df_transpose = df.transpose()
+    df_transpose.to_csv("../csv_files/Kevin's conversion")
+    print "a"
+
+
 if __name__ == "__main__":
     '''
     *** File Directory
@@ -787,12 +776,17 @@ if __name__ == "__main__":
     file_name2 = '10_13_AL_new_ibsen_modified.csv'
     file_name3 = 'k4_filtered_8X10_10_13_AL_new_ibsen_modified.csv'
 
+    Three_1 = 'Allelic_ladder_310.csv'
+
     file_dir = join(folder, file_name)
     file_dir2 = join(folder, file_name2)
     file_dir3 = join(folder, file_name3)
 
-    # a = main4(file_dir)
-    main1(file_dir3, file_dir2)
+    Three_10 = join(folder, Three_1)
+
+    # main1(file_dir3, file_dir2)
+    # main_get_five_dyes_and_plot(Three_10)
+    main_conversion_310(file_dir2)
     # main_load_one(file_dir)
 
     plt.show()
