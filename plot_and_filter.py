@@ -752,15 +752,20 @@ def main_get_five_dyes_and_plot(file_dir):
     data1 = load_file(file_dir)
     time_ave_data_list_of_list = get_five_dyes2(data1)
     p1 = plot_dyes(time_ave_data_list_of_list)
-    plt.show()
+    p1.set_title(file_dir)
     print "hi"
 
 def main_conversion_310(file_dir):
+    """
+    Convert csv files into 310 format
+    :param file_dir:
+    :return:
+    """
     data = load_file(file_dir)
     five_dyes = get_five_dyes(data)
     df = pd.DataFrame(five_dyes)
     df_transpose = df.transpose()
-    df_transpose.to_csv("../csv_files/Kevin's conversion")
+    df_transpose.to_csv("../csv_files/Kevin2's conversion")
     print "a"
 
 
@@ -777,16 +782,19 @@ if __name__ == "__main__":
     file_name3 = 'k4_filtered_8X10_10_13_AL_new_ibsen_modified.csv'
 
     Three_1 = 'Allelic_ladder_310.csv'
+    Kevins_conv = '10_13__AL_RAW.csv'
 
     file_dir = join(folder, file_name)
     file_dir2 = join(folder, file_name2)
     file_dir3 = join(folder, file_name3)
 
     Three_10 = join(folder, Three_1)
+    Kevins_conversion = join(folder, Kevins_conv)
 
     # main1(file_dir3, file_dir2)
-    # main_get_five_dyes_and_plot(Three_10)
-    main_conversion_310(file_dir2)
+    main_get_five_dyes_and_plot(Kevins_conversion)
+    main_get_five_dyes_and_plot(Three_10)
+    # main_conversion_310(file_dir2)
     # main_load_one(file_dir)
 
     plt.show()
