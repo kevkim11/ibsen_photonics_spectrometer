@@ -1,22 +1,22 @@
+"""
+Author: Kevin Kim
+Date: October 2016
+Designed to use with the new ibsen output file
+Still need to convert to csv file though.
+"""
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
-import itertools
 
 # Custom Modules
 from matricies import *
 from k_baseline import *
 
+import itertools
 from os.path import join
-
 from datetime import datetime
 
-"""
-Author: Kevin Kim
-Date: 10/13/16
-Designed to use with the new ibsen output file
-Still need to convert to csv file though.
-"""
 # variable that can keep track of running time
 startTime = datetime.now()
 
@@ -195,23 +195,6 @@ def k_filter4(panda_table, pixel_steps, time_steps, flu=905, joe=956, tmr=1000, 
     return filtered_data
 
 
-# def data_compression(df, steps=4):
-#     # TODO
-#     """
-#
-#     :param df:
-#     :param steps:
-#     :return:
-#     """
-#     times = list(df.columns.values)
-#     startTime = datetime.now()
-#     print "Compression Start " + str(startTime)
-#     for i in range(1, 1+len(times)):
-#         if i%steps != 0:
-#             df.drop(i, axis=1, inplace=True)
-#     print "Compression took " + str(datetime.now() - startTime)
-#     return df
-
 def plot_one_line(list_of_values, color="blue", label="label"):
     """
 
@@ -384,19 +367,17 @@ def baseline_subtraction(list_list_dyes, sub):
 def matrix_correction(list_list_dyes, matrix):
     """
     Matrix Correction (5 x 5 matrix).
-    :param r1: list - Flu
-    :param r2: list - Joe
-    :param r3: list - TMR
-    :param r4: list - CXR
-    :param r5: list - WEN
-    :param matrix: numpy array matrix
-    :return:
+    :param list_list_dyes: contains 5 lists that correspond with the 5 dyes (Flu, Joe, TMR, CXR, and Wen)
+    :param matrix: numpy array matrix in order to matrix correction
+    :return: a modified
     """
+    # Initialize lists for the matrix corrected values
     flu = []
     joe = []
     tmr = []
     cxr = []
     wen = []
+    # Matrix Correction
     for a, b, c, d, e in itertools.izip(list_list_dyes[0], list_list_dyes[1], list_list_dyes[2], list_list_dyes[3], list_list_dyes[4]):
         vector = np.array([a, b, c, d, e])
         dot_product = matrix.dot(vector)
@@ -411,11 +392,7 @@ def matrix_correction(list_list_dyes, matrix):
 def set_threshold(list_list_dyes, threshold_value):
     """
     Set a threshold so that all values below that is threshold is set to the threshold value.
-    :param r1: list - Flu
-    :param r2: list - Joe
-    :param r3: list - TMR
-    :param r4: list - CXR
-    :param r5: list - WEN
+    :param list_list_dyes: contains 5 lists that correspond with the 5 dyes (Flu, Joe, TMR, CXR, and Wen)
     :param threshold_value:
     :return: Modified data with the threshold value
     """
@@ -432,13 +409,6 @@ def set_threshold(list_list_dyes, threshold_value):
     # [modified_dye.append(0) if i < threshold_value else modified_dye.append(i) for i in dye]
     return [flu2, joe2, tmr2, cxr2, wen2]
 
-
-def k_baseline_subtraction(list_list_dyes):
-    """
-    Kevin's baseline subtraction algorithm.
-    :param list_list_dyes:
-    :return:
-    """
 
 def baseline_subtraction_steps_main(file_dir):
     """
@@ -643,9 +613,10 @@ def main4(filtered_file_dir, raw_file_dir):
     print "done " + str(datetime.now() - startTime)
     return
 
+
 def main_load_one(file_dir):
     """
-    Just for uploading one file_dir
+    Just for uploading and plotting one file_dir
     :param file_dir:
     :return:
     """
@@ -663,6 +634,7 @@ def main_load_one(file_dir):
     p1 = plot_dyes(matrix_corrected_list_of_list,list_of_baseline_x=l1["x/quarter seconds"], list_of_baseline_y=l1["y/best-fit line"],
                    scatter=True)
     p1.set_title(file_dir)
+
 
 def find_new_baseline_minimums(dye, x_and_y_dict):
     """
@@ -751,12 +723,15 @@ def main1(filtered_file_dir, raw_file_dir):
 def main_get_five_dyes_and_plot(file_dir):
     # data = pd.read_csv(file_dir, index_col=0)
     data1 = load_file(file_dir)
-    time_ave_data_list_of_list = get_five_dyes2(data1)
-    p1 = plot_dyes(time_ave_data_list_of_list)
+    list_of_list = get_five_dyes2(data1)
+    """ MATRIX CORRECTION (DELETE THIS WHEN NOT USING)"""
+    matrix_corrected = matrix_correction(list_of_list, matrix_MOD)
+    p1 = plot_dyes(matrix_corrected)
+    # p1 = plot_dyes(list_of_list)
     p1.set_title(file_dir)
     print "hi"
 
-def main_conversion_310(file_dir):
+def main_conversion_310(file_dir, file_name):
     """
     Convert csv files into 310 format
     :param file_dir:
@@ -766,7 +741,7 @@ def main_conversion_310(file_dir):
     five_dyes = get_five_dyes(data)
     df = pd.DataFrame(five_dyes)
     df_transpose = df.transpose()
-    df_transpose.to_csv("../csv_files/Kevin2's conversion")
+    df_transpose.to_csv("../csv_files/310_converted_"+file_name)
     print "a"
 
 
@@ -779,7 +754,8 @@ if __name__ == "__main__":
     # file name variables
     AL2 = '10_26_9mW_AL_(actual).csv'
     file_name = 'k4_filtered_8X4_10_13_AL_new_ibsen_modified.csv'
-    file_name2 = '10_13_AL_new_ibsen_modified.csv'
+    # file_name2 = '10_13_AL_new_ibsen_modified.csv'
+    file_name2 = '10_14_matrix.csv'
     file_name3 = 'k4_filtered_8X10_10_13_AL_new_ibsen_modified.csv'
 
     Three_1 = 'Allelic_ladder_310.csv'
@@ -793,10 +769,10 @@ if __name__ == "__main__":
     Kevins_conversion = join(folder, Kevins_conv)
 
     # main1(file_dir3, file_dir2)
-    main_get_five_dyes_and_plot(Kevins_conversion)
-    main_get_five_dyes_and_plot(Three_10)
-    # main_conversion_310(file_dir2)
-    # main_load_one(file_dir)
+    # main_get_five_dyes_and_plot(Kevins_conversion)
+    # main_get_five_dyes_and_plot(Three_10)
+    main_conversion_310(file_dir2, file_name2)
+    main_get_five_dyes_and_plot(file_dir2)
 
     plt.show()
     # main(file_dir2)

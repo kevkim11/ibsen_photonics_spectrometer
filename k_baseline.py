@@ -101,9 +101,7 @@ class line_scanner:
                     self.local_max_dict["y/best-fit line"].append(dos)
         return self.local_max_dict
 
-"""
-k_baseline class
-"""
+
 class K_Baseline:
     def __init__(self, local_min_dict):
         """
