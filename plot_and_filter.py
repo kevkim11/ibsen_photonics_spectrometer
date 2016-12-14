@@ -17,6 +17,8 @@ import itertools
 from os.path import join
 from datetime import datetime
 
+from SG1_writer import SG1_Writer
+
 # variable that can keep track of running time
 startTime = datetime.now()
 
@@ -310,12 +312,10 @@ def get_five_dyes(data, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
     :param wen: ints/pixels
     :return: lists
     """
-    a1 = data.ix[flu].tolist()
-    a2 = data.ix[joe].tolist()
-    a3 = data.ix[tmr].tolist()
-    a4 = data.ix[cxr].tolist()
-    a5 = data.ix[wen].tolist()
-    return [a1, a2, a3, a4, a5]
+    list_of_list = []
+    for i in [flu, joe, tmr, cxr, wen]:
+        list_of_list.append(data.ix[i].tolist())
+    return list_of_list
 
 
 def get_five_dyes2(data, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
@@ -329,12 +329,10 @@ def get_five_dyes2(data, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
     :param wen: ints/pixels
     :return: lists
     """
-    a1 = data.loc[str(flu)].tolist()
-    a2 = data.loc[str(joe)].tolist()
-    a3 = data.loc[str(tmr)].tolist()
-    a4 = data.loc[str(cxr)].tolist()
-    a5 = data.loc[str(wen)].tolist()
-    return [a1, a2, a3, a4, a5]
+    list_of_list = []
+    for i in [flu, joe, tmr, cxr, wen]:
+        list_of_list.append(data.loc[str(i)].tolist())
+    return list_of_list
 
 def baseline_subtraction(list_list_dyes, sub):
     """
@@ -725,13 +723,17 @@ def main_get_five_dyes_and_plot(file_dir):
     data1 = load_file(file_dir)
     list_of_list = get_five_dyes2(data1)
     """ MATRIX CORRECTION (DELETE THIS WHEN NOT USING)"""
-    matrix_corrected = matrix_correction(list_of_list, matrix_MOD)
-    p1 = plot_dyes(matrix_corrected)
-    # p1 = plot_dyes(list_of_list)
+    # matrix_corrected = matrix_correction(list_of_list, matrix_MOD)
+    # p1 = plot_dyes(matrix_corrected)
+    p1 = plot_dyes(list_of_list)
     p1.set_title(file_dir)
     print "hi"
 
 def main_conversion_310(file_dir, file_name):
+    #TODO Getting a CSV file right now but need the final output to be an SG1 File
+    """
+
+    """
     """
     Convert csv files into 310 format
     :param file_dir:
@@ -743,6 +745,20 @@ def main_conversion_310(file_dir, file_name):
     df_transpose = df.transpose()
     df_transpose.to_csv("../csv_files/310_converted_"+file_name)
     print "a"
+
+def main_conversion_sg1(file_dir):
+    """
+    Convert csv files into sg1 format
+    :param file_dir:
+    :return:
+    """
+    data = load_file(file_dir)
+    five_dyes = get_five_dyes(data)
+    SG1_Writer("../csv_files/output.sg1", five_dyes)
+    # df = pd.DataFrame(five_dyes)
+    # df_transpose = df.transpose()
+    # df_transpose.to_csv("../csv_files/310_converted_"+file_name)
+    # print "a"
 
 
 if __name__ == "__main__":
@@ -765,15 +781,80 @@ if __name__ == "__main__":
     file_dir2 = join(folder, file_name2)
     file_dir3 = join(folder, file_name3)
 
-    Three_10 = join(folder, Three_1)
-    Kevins_conversion = join(folder, Kevins_conv)
-
     # main1(file_dir3, file_dir2)
     # main_get_five_dyes_and_plot(Kevins_conversion)
     # main_get_five_dyes_and_plot(Three_10)
-    main_conversion_310(file_dir2, file_name2)
+    # main_conversion_310(file_dir2, file_name2)
+    main_conversion_sg1(file_dir2)
     main_get_five_dyes_and_plot(file_dir2)
 
     plt.show()
     # main(file_dir2)
     # baseline_subtraction_steps_main(file_dir)
+    # """
+    # Variables
+    # """
+    # # Directory variables
+    # # directory_sg = '/Users/kevkim/GitHub/CSV-to-FSA-script/CSV FOLDER/KevinTxtAllelicLadder.sg1'
+    # # directory_sg_out = '/Users/kevkim/GitHub/CSV-to-FSA-script/CSV FOLDER/output.sg1'
+    # # destination = '/Users/kevkim/GitHub/CSV-to-FSA-script/CSV FOLDER'
+    # # name = 'Allelic ladder - 10-14-16-5-21 PM.fsa'
+    #
+    # sg1_1 = '/Users/kevkim/GitHub/CSV-to-FSA-script/CSV FOLDER/KevinTxtAllelicLadder.sg1'
+    # sg1_2 = '/Users/kevkim/GitHub/CSV-to-FSA-script/CSV FOLDER/310_converted_10_14_matrix.txt.sg1'
+    # sg1_3 = '/Users/kevkim/GitHub/CSV-to-FSA-script/CSV FOLDER/310_converted_11_9_Matrix_10mW.txt.sg1'
+    #
+    # # Dataframe/list_to_list variable
+    # df = pd.read_csv('/Users/kevkim/GitHub/CSV-to-FSA-script/CSV FOLDER/data_to_csv.csv', index_col=0)
+    # # Contains a list of list of the dye values.
+    # list_of_list = df.values.tolist()
+    #
+    # #######################
+    # """
+    # Write
+    # """
+    #
+    # SG1_Writer(directory_sg_out, list_of_list)
+    # SG1_reader = SG1_Reader(directory_sg_out)
+    # a = SG1_reader.storeEntries()
+    # print "a"
+
+    """
+    Read
+    """
+    # SG1_1_reader = SG1_Reader(sg1_1)
+    # SG1_2_reader = SG1_Reader(sg1_2)
+    # SG1_3_reader = SG1_Reader(sg1_3)
+    # a = SG1_1_reader.storeEntries()
+    # b = SG1_2_reader.storeEntries()
+    # c = SG1_3_reader.storeEntries()
+    print "a"
+    # SG1_reader.showEntries()
+    #
+    # SG1_reader.storeEntries()
+
+
+    # data = [SG1_reader.getData('TRAC', 1), SG1_reader.getData('TRAC', 2), SG1_reader.getData('TRAC', 3),
+    #         SG1_reader.getData('TRAC', 4), SG1_reader.getData('TRAC', 105)]
+    # one = SG1_reader.getData('TRAC', 1)
+    # two = SG1_reader.getData('TRAC', 2)
+    # Dye_num = SG1_reader.getData('Dye#', 1)
+    # DATE1 = SG1_reader.getData('RUND', 1)
+    # DATE2 = SG1_reader.getData('RUND', 2)
+    # TIME1 = SG1_reader.getData('RUNT', 1)
+    # TIME2 = SG1_reader.getData('RUNT', 2)
+    # a = pd.DataFrame(data)
+    # a.to_csv('/Users/kevkim/GitHub/CSV-to-FSA-script/CSV FOLDER/data_to_csv.csv')
+    # for i in data:
+    #     print i
+
+    print "a"
+    #
+    # plot_dyes(data)
+    # plt.show()
+
+    # with open(directory_sg_out, 'rb') as f:
+    #     a = f.read(4)
+    #     print a
+
+    # myArr = bytearray(f.read(4))
