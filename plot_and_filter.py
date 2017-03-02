@@ -2,22 +2,20 @@
 Author: Kevin Kim
 Date: October 2016
 Designed to use with the new ibsen output file
-Still need to convert to csv file though.
+
 """
+
+# import itertool
+from datetime import datetime
+from os.path import join
 
 import matplotlib.pyplot as plt
 import pandas as pd
-
-
-# Custom Modules
-from matricies import *
-from k_baseline import *
-
-import itertools
-from os.path import join
-from datetime import datetime
+import csv
 
 from SG1_writer import SG1_Writer
+from k_baseline import *
+from matricies import *
 
 # variable that can keep track of running time
 startTime = datetime.now()
@@ -197,7 +195,7 @@ def k_filter4(panda_table, pixel_steps, time_steps, flu=905, joe=956, tmr=1000, 
     return filtered_data
 
 
-def plot_one_line(list_of_values, color="blue", label="label"):
+def plot_ibsen_spectrum(list_of_values, color="blue", label="label"):
     """
 
     :param list_of_values:
@@ -429,7 +427,7 @@ def baseline_subtraction_steps_main(file_dir):
     q1 = plot_dyes(list_of_list_dyes, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
                    list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
     q1.set_title(str(file_dir))
-    q2 = plot_one_line(a, color="red")
+    q2 = plot_ibsen_spectrum(a, color="red")
     q2.set_title("Baseline subtracted")
     print "done"
     plt.show()
@@ -718,16 +716,55 @@ def main1(filtered_file_dir, raw_file_dir):
     print "done " + str(datetime.now() - startTime)
     return
 
+def main_get_five_dyes_and_convert_to_csv(file_dir):
+    """
+
+    :param file_dir: reference spectrum
+    :return:
+    """
+    data = load_file(file_dir)
+    # Reference spectrum
+    list_of_list = get_five_dyes2(data)
+    rows = zip(list_of_list[0], list_of_list[1], list_of_list[2], list_of_list[3], list_of_list[4])
+    with open("LUNA_CUSTOMER_ALLELIC_LADDER.csv", "wb") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Flu", "Joe", "TMR", "CXR", "WEN"])
+        for row in rows:
+            writer.writerow(row)
+
 def main_get_five_dyes_and_plot(file_dir):
+    """
+
+    :param file_dir: reference spectrum
+    :return:
+    """
     # data = pd.read_csv(file_dir, index_col=0)
     data1 = load_file(file_dir)
+    # Reference spectrum
     list_of_list = get_five_dyes2(data1)
     """ MATRIX CORRECTION (DELETE THIS WHEN NOT USING)"""
-    # matrix_corrected = matrix_correction(list_of_list, matrix_MOD)
+    matrix_corrected = matrix_correction(list_of_list, matrix_MOD2)
+    p1 = plot_dyes(matrix_corrected)
+    # p1 = plot_dyes(list_of_list)
+    p1.set_title(file_dir)
+
+def main_get_five_dark_spec_dyes_and_plot(file_dir):
+    """
+
+    :param file_dir: dark spectrum
+    :return:
+    """
+    # data = pd.read_csv(file_dir, index_col=0)
+    data1 = load_file(file_dir)
+    # Reference spectrum
+    # list_of_list = get_five_dyes2(data1)
+    # Dark spectrum
+    list_of_list = reference_sepectrum(data1)
+    """ MATRIX CORRECTION (DELETE THIS WHEN NOT USING)"""
+    # matrix_corrected = matrix_correction(list_of_list, matrix_MOD2)
     # p1 = plot_dyes(matrix_corrected)
     p1 = plot_dyes(list_of_list)
     p1.set_title(file_dir)
-    print "hi"
 
 def main_conversion_310(file_dir, file_name):
     #TODO Getting a CSV file right now but need the final output to be an SG1 File
@@ -754,11 +791,45 @@ def main_conversion_sg1(file_dir):
     """
     data = load_file(file_dir)
     five_dyes = get_five_dyes(data)
-    SG1_Writer("../csv_files/output.sg1", five_dyes)
+    SG1_Writer("../csv_files/CUSTOMER_LADDER.sg1", five_dyes)
     # df = pd.DataFrame(five_dyes)
     # df_transpose = df.transpose()
     # df_transpose.to_csv("../csv_files/310_converted_"+file_name)
     # print "a"
+
+def reference_sepectrum(data):
+    """
+    inputs a file directory and subtracts the dark spectrum from each of the
+
+    :param file_dir: (dark spectrum data set)
+    :return: a new list of list that contains the reference spectrum value for each dye
+    """
+    dark_spectrum = data.iloc[:,1].tolist()
+    list_of_dark_to_sub = []
+    list_of_dark_to_sub.append(dark_spectrum[904])
+    list_of_dark_to_sub.append(dark_spectrum[955])
+    list_of_dark_to_sub.append(dark_spectrum[999])
+    list_of_dark_to_sub.append(dark_spectrum[1036])
+    list_of_dark_to_sub.append(dark_spectrum[1166])
+
+    list_of_list_5_dyes_dark = get_five_dyes(data)
+    new_l = [[] for x in xrange(5)] # initlaized a new list
+    pos = 0
+    for list_of_dye_dark, b in itertools.izip(list_of_list_5_dyes_dark, list_of_dark_to_sub):
+        for a in list_of_dye_dark:
+            new_l[pos].append(a-b)
+        pos+=1
+    # for pos, list_of_dye_dark in enumerate(list_of_list_5_dyes_dark):
+    #     for a, b in itertools.izip(list_of_dye_dark, dark_spectrum):
+    #         new_l[pos].append(a-b)
+    return new_l
+
+    # # dark_spectrum_list = dark_spectrum.tolist()
+    # reference_sepectrum = pd.DataFrame()
+    # # data.sub()
+    # for index,row in data.iterrows():
+    #     row_list = row.tolist()
+    #     print "a"
 
 
 if __name__ == "__main__":
@@ -769,10 +840,12 @@ if __name__ == "__main__":
     folder = '../csv_files'
     # file name variables
     AL2 = '10_26_9mW_AL_(actual).csv'
-    file_name = 'k4_filtered_8X4_10_13_AL_new_ibsen_modified.csv'
+    file_name = 'dummy_1_24_17.csv'
     # file_name2 = '10_13_AL_new_ibsen_modified.csv'
-    file_name2 = '10_14_matrix.csv'
-    file_name3 = 'k4_filtered_8X10_10_13_AL_new_ibsen_modified.csv'
+    file_name2 = 'luna_experiment_1_18_AL_manual_run_trial_2.csv'
+    file_name3 = 'luna_experiment_1_23_CUSTOMER_LADDER_manual_run_DARK_ONLY.csv'
+
+    five_color_matrix1 = "luna_experiment_1_12_AL_manual_run_trial_3.csv"
 
     Three_1 = 'Allelic_ladder_310.csv'
     Kevins_conv = '10_13__AL_RAW.csv'
@@ -781,12 +854,24 @@ if __name__ == "__main__":
     file_dir2 = join(folder, file_name2)
     file_dir3 = join(folder, file_name3)
 
+    file_dir_luna = join(folder,file_dir)
+
+    #ibsen spectrum
+    # df = load_file(file_dir3)
+    # dark_spectrum = df.iloc[:,1].tolist()
+    # ibsen_plot = plot_ibsen_spectrum(dark_spectrum)
+
     # main1(file_dir3, file_dir2)
     # main_get_five_dyes_and_plot(Kevins_conversion)
     # main_get_five_dyes_and_plot(Three_10)
     # main_conversion_310(file_dir2, file_name2)
-    main_conversion_sg1(file_dir2)
-    main_get_five_dyes_and_plot(file_dir2)
+    # main_conversion_sg1(file_dir2)
+    # main_get_five_dyes_and_plot(file_dir2)
+    # main_get_five_dyes_and_plot(file_dir_luna)
+    main_get_five_dyes_and_plot(join(folder, file_dir2))
+    main_get_five_dyes_and_convert_to_csv(join(folder, file_dir2))
+    # reference_sepectrum(file_dir3)
+    # main_get_five_dark_spec_dyes_and_plot(join(folder,file_dir3))
 
     plt.show()
     # main(file_dir2)
@@ -851,7 +936,7 @@ if __name__ == "__main__":
     print "a"
     #
     # plot_dyes(data)
-    # plt.show()
+    plt.show()
 
     # with open(directory_sg_out, 'rb') as f:
     #     a = f.read(4)
