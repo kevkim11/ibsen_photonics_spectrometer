@@ -40,8 +40,6 @@ def load_file(csv):
 """
 *** Time Filter functions
 """
-
-
 def mean(numbers):
     return float(sum(numbers)) / max(len(numbers), 1)
 
@@ -336,7 +334,7 @@ def baseline_subtraction(list_list_dyes, sub):
     """
     Baseline subtraction based on lists of each dye and a list of the subtraction number.
 
-    Subtracts each dye in list_list_dyes with the respective ints in sub
+    Subtracts each dye in list_list_dyes with the respective list of ints in sub
     :param r1: list - Flu
     :param r2: list - Joe
     :param r3: list - TMR
@@ -748,6 +746,7 @@ def main_get_five_dyes_and_plot(file_dir):
     # p1 = plot_dyes(list_of_list)
     p1.set_title(file_dir)
 
+
 def main_get_five_dark_spec_dyes_and_plot(file_dir):
     """
 
@@ -766,8 +765,8 @@ def main_get_five_dark_spec_dyes_and_plot(file_dir):
     p1 = plot_dyes(list_of_list)
     p1.set_title(file_dir)
 
+
 def main_conversion_310(file_dir, file_name):
-    #TODO Getting a CSV file right now but need the final output to be an SG1 File
     """
 
     """
@@ -850,7 +849,9 @@ if __name__ == "__main__":
     Three_1 = 'Allelic_ladder_310.csv'
     Kevins_conv = '10_13__AL_RAW.csv'
 
-    file_dir = join(folder, file_name)
+    print "a"
+
+    file_dir = join(folder, AL2)
     file_dir2 = join(folder, file_name2)
     file_dir3 = join(folder, file_name3)
 
@@ -868,8 +869,9 @@ if __name__ == "__main__":
     # main_conversion_sg1(file_dir2)
     # main_get_five_dyes_and_plot(file_dir2)
     # main_get_five_dyes_and_plot(file_dir_luna)
+    main_get_five_dyes_and_plot(join(folder, file_dir))
     main_get_five_dyes_and_plot(join(folder, file_dir2))
-    main_get_five_dyes_and_convert_to_csv(join(folder, file_dir2))
+    # main_get_five_dyes_and_convert_to_csv(join(folder, file_dir2))
     # reference_sepectrum(file_dir3)
     # main_get_five_dark_spec_dyes_and_plot(join(folder,file_dir3))
 
@@ -913,7 +915,6 @@ if __name__ == "__main__":
     # a = SG1_1_reader.storeEntries()
     # b = SG1_2_reader.storeEntries()
     # c = SG1_3_reader.storeEntries()
-    print "a"
     # SG1_reader.showEntries()
     #
     # SG1_reader.storeEntries()
