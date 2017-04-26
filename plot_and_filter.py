@@ -17,9 +17,89 @@ from SG1_writer import SG1_Writer
 from k_baseline import *
 from matricies import *
 
+from DataCursor import DataCursor
+
 # variable that can keep track of running time
 startTime = datetime.now()
+import sys
+from numpy import NaN, Inf, arange, isscalar, asarray, array
 
+# plotly api
+import plotly
+plotly.tools.set_credentials_file(username='kevkim11', api_key='eXCerKP3UZXa3I1mvVcf')
+import plotly.plotly as py
+import plotly.graph_objs as go
+
+def peakdet(v, delta, x=None):
+    """
+    Converted from MATLAB script at http://billauer.co.il/peakdet.html
+
+    Returns two arrays
+
+    function [maxtab, mintab]=peakdet(v, delta, x)
+    %PEAKDET Detect peaks in a vector
+    %        [MAXTAB, MINTAB] = PEAKDET(V, DELTA) finds the local
+    %        maxima and minima ("peaks") in the vector V.
+    %        MAXTAB and MINTAB consists of two columns. Column 1
+    %        contains indices in V, and column 2 the found values.
+    %
+    %        With [MAXTAB, MINTAB] = PEAKDET(V, DELTA, X) the indices
+    %        in MAXTAB and MINTAB are replaced with the corresponding
+    %        X-values.
+    %
+    %        A point is considered a maximum peak if it has the maximal
+    %        value, and was preceded (to the left) by a value lower by
+    %        DELTA.
+
+    % Eli Billauer, 3.4.05 (Explicitly not copyrighted).
+    % This function is released to the public domain; Any use is allowed.
+
+    """
+    maxtab = []
+    mintab = []
+
+    if x is None:
+        x = arange(len(v))
+
+    v = asarray(v)
+
+    if len(v) != len(x):
+        sys.exit('Input vectors v and x must have same length')
+
+    if not isscalar(delta):
+        sys.exit('Input argument delta must be a scalar')
+
+    if delta <= 0:
+        sys.exit('Input argument delta must be positive')
+
+    mn, mx = Inf, -Inf
+    mnpos, mxpos = NaN, NaN
+
+    lookformax = True
+
+    for i in arange(len(v)):
+        this = v[i]
+        if this > mx:
+            mx = this
+            mxpos = x[i]
+        if this < mn:
+            mn = this
+            mnpos = x[i]
+
+        if lookformax:
+            if this < mx - delta:
+                maxtab.append((mxpos, mx))
+                mn = this
+                mnpos = x[i]
+                lookformax = False
+        else:
+            if this > mn + delta:
+                mintab.append((mnpos, mn))
+                mx = this
+                mxpos = x[i]
+                lookformax = True
+
+    return array(maxtab), array(mintab)
 
 def load_file(csv):
     """
@@ -192,6 +272,32 @@ def k_filter4(panda_table, pixel_steps, time_steps, flu=905, joe=956, tmr=1000, 
     print "k_filter4 and output is done " + str(datetime.now() - startTime)
     return filtered_data
 
+def k_peak_detection(list_of_list):
+    """
+
+    :param list_of_list:
+    :return: list that contains two lists (x and y peaks)
+    """
+    list_of_peaks = [[],[]]
+    threhold_value = 65
+    for list in list_of_list:
+        maxtab, mintab = peakdet(list, 10)
+        local_max_x = array(maxtab)[:, 0]
+        local_max_y = array(maxtab)[:, 1]
+        print "found local max"
+        # Filter the local_max_x and local_max_y
+        peak_x = []
+        peak_y = []
+        for x, y in zip(local_max_x, local_max_y):
+            if y > threhold_value:
+                peak_x.append(x)
+                peak_y.append(y)
+        peak_x.pop(0)
+        peak_y.pop(0)
+        list_of_peaks[0].append(peak_x)
+        list_of_peaks[1].append(peak_y)
+    return list_of_peaks
+
 
 def plot_ibsen_spectrum(list_of_values, color="blue", label="label"):
     """
@@ -199,11 +305,14 @@ def plot_ibsen_spectrum(list_of_values, color="blue", label="label"):
     :param list_of_values:
     :return:
     """
+
+    # fig, ax = plt.subplots()
     fig = plt.figure()
     plot = fig.add_subplot(111)
 
     x_axis = [x for x in range(len(list_of_values))]
     plot.plot(x_axis, list_of_values, c=color, label=label)
+
     """
     Set the x and y coordinate labels
     """
@@ -236,6 +345,38 @@ def plot_ibsen_spectrum(list_of_values, color="blue", label="label"):
     legend = plt.legend(loc='upper left', fontsize='small')
     return plot
 
+
+def quart_sec_to_bp(quarter_seconds):
+
+    return
+
+def plotly_dyes(list_list_dyes):
+    """
+
+    :param list_list_dyes:
+    :return:
+    """
+    x_axis = [x for x in range(len(list_list_dyes[3]))]
+
+    data = [
+        go.Scatter(
+            x=x_axis,
+            y=list_list_dyes[3],
+            name='Plotly Plot of my data.',
+        )
+    ]
+
+    layout = go.Layout(
+        title="Number of songs listed in the Guardian's<br><em>Top 1,000 Songs to Hear Before You Die</em> per artist with 4 or more songs",
+        font=dict(
+            family='Georgia, serif',
+            color='#635F5D'
+        ),
+        plot_bgcolor='#EFECEA'
+    )
+    fig = go.Figure(data=data, layout=layout)
+    plot_url = py.plot(fig)
+
 def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], scatter = False):
     """
     Takes a list of list of the five dyes and then plots each of them.
@@ -253,7 +394,10 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     x_axis = [x for x in range(len(list_list_dyes[3]))]
 
     if scatter == True and len(list_of_baseline_x)!= 0:
-        plot.scatter(list_of_baseline_x, list_of_baseline_y, c="red", label='Scatter')
+        plot.scatter(list_of_baseline_x, list_of_baseline_y, c="black", label='Scatter')
+        # Plot the annotations / coordinates that show up on the plot
+        # for x_coord, y_coord, in zip(list_of_baseline_x, list_of_baseline_y):
+        #     plot.annotate("("+str(x_coord) + ")", xy=(x_coord, y_coord))
     elif scatter == False and len(list_of_baseline_x)!= 0:
         plot.plot(list_of_baseline_x, list_of_baseline_y, c="red", label='Plot')
     plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
@@ -294,7 +438,78 @@ def plot_dyes(list_list_dyes, list_of_baseline_x = [], list_of_baseline_y = [], 
     legend = plt.legend(loc='upper left', fontsize='small')
     return plot
 
-#TODO Need to to find out which get_five_dyes is the actual one.
+def plot_dyes2(list_list_dyes, list_of_peaks):
+    """
+    Plots the 5 dyes along with their peaks.
+
+    :param list_list_dyes:
+    :param list_of_peaks: list that contains two lists (x and y peaks)
+    :param scatter:
+    :return:
+    """
+    fig = plt.figure()
+    plot = fig.add_subplot(111)
+
+    x_axis = [x for x in range(len(list_list_dyes[3]))]
+
+    plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
+    plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
+    plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
+    plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
+    plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
+    plot.scatter(list_of_peaks[0][0], list_of_peaks[1][0], c="red")
+    plot.scatter(list_of_peaks[0][1], list_of_peaks[1][1], c="orange")
+    plot.scatter(list_of_peaks[0][2], list_of_peaks[1][2], c="green")
+    plot.scatter(list_of_peaks[0][3], list_of_peaks[1][3], c="blue")
+    plot.scatter(list_of_peaks[0][4], list_of_peaks[1][4], c="purple")
+
+    """
+    Set the x and y coordinate labels
+    """
+    plot.set_xlabel('quarter Seconds')
+    plot.set_ylabel('ADC-Counts')
+    """
+    delta click event function
+    """
+    # Keep track of x/y coordinates, part of the find_delta_onclick
+    xcoords = []
+    ycoords = []
+    def find_delta_onclick(event):
+        global ix, iy
+        global coords
+        ix, iy = event.xdata, event.ydata
+        xcoords.append(ix)
+        ycoords.append(iy)
+        print 'x = %s, y = %s' % (ix, iy)
+        if len(xcoords) % 2 == 0:
+            delta_x = abs(xcoords[-1] - xcoords[-2])
+            delta_y = abs(ycoords[-1] - ycoords[-2])
+            print 'delta_x = %d, delta_y = %d' % (delta_x, delta_y)
+        coords = [ix, iy]
+        return coords
+    # connect the onclick function to the to mouse press
+    fig.canvas.mpl_connect('button_press_event', find_delta_onclick)
+    """
+    add a for each plot
+    """
+    legend = plt.legend(loc='upper left', fontsize='small')
+    return plot
+
+def plot_dye_cursor(list_list_dyes, list_of_peaks):
+    fig = plt.figure()
+    plot = fig.add_subplot(111)
+
+    x_axis = [x for x in range(len(list_list_dyes[0]))]
+
+    plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
+
+    scat = plot.scatter(list_of_peaks[0][0], list_of_peaks[1][0], c="red")
+    DataCursor(scat, list_of_peaks[0][0], list_of_peaks[1][0])
+
+    plot.set_xlabel('quarter Seconds')
+    plot.set_ylabel('ADC-Counts')
+    legend = plt.legend(loc='upper left', fontsize='small')
+    return plot
 
 
 def get_five_dyes(data, flu=905, joe=956, tmr=1000, cxr=1037, wen=1167):
@@ -403,7 +618,9 @@ def set_threshold(list_list_dyes, threshold_value):
     # [modified_dye.append(0) if i < threshold_value else modified_dye.append(i) for i in dye]
     return [flu2, joe2, tmr2, cxr2, wen2]
 
-
+"""
+Main Functions
+"""
 def baseline_subtraction_steps_main(file_dir):
     """
 
@@ -415,18 +632,23 @@ def baseline_subtraction_steps_main(file_dir):
     """2) Get 5 dyes"""
     list_of_list_dyes = get_five_dyes(pd)
     """3) K_Baseline Subtraction"""
-    line_scanner1 = line_scanner(list_of_list_dyes[3])
-    l1 = line_scanner1.find_all_local_min(threshold_value=50000)
-    k_baseline1 = K_Baseline(l1)
-    x_and_y_dict = k_baseline1.populate_x_and_y(list_of_list_dyes[3])
-    bs1 = baseline_subtraction_class(list_of_list_dyes[3])
-    a = bs1.perform_baseline_subtraction()
+    line_scanner1 = line_scanner(list_of_list_dyes[4])
+    # l1 = line_scanner1.find_all_local_min(threshold_value=50000)
+    """3.1) Trying out peakdet"""
+    maxtab, mintab = peakdet(list_of_list_dyes[4], 10)
+    # l1 = line_scanner1.find_all_global_max()
+    # k_baseline1 = K_Baseline(l1)
+    # x_and_y_dict = k_baseline1.populate_x_and_y(list_of_list_dyes[3])
+    # bs1 = baseline_subtraction_class(list_of_list_dyes[3])
+    # a = bs1.perform_baseline_subtraction()
     """4) Plot Data"""
-    q1 = plot_dyes(list_of_list_dyes, list_of_baseline_x=x_and_y_dict["x/quarter seconds"],
-                   list_of_baseline_y=x_and_y_dict["y/best-fit line"], scatter=False)
+    # q1 = plot_dyes(list_of_list_dyes, list_of_baseline_x=l1["x/quarter seconds"],
+    #                list_of_baseline_y=l1["y/best-fit line"], scatter=True)
+    q1 = plot_dyes(list_of_list_dyes, list_of_baseline_x=array(maxtab)[:, 0],
+                   list_of_baseline_y=array(maxtab)[:, 1], scatter=True)
     q1.set_title(str(file_dir))
-    q2 = plot_ibsen_spectrum(a, color="red")
-    q2.set_title("Baseline subtracted")
+    # q2 = plot_ibsen_spectrum(a, color="red")
+    # q2.set_title("Baseline subtracted")
     print "done"
     plt.show()
 
@@ -741,10 +963,53 @@ def main_get_five_dyes_and_plot(file_dir):
     # Reference spectrum
     list_of_list = get_five_dyes2(data1)
     """ MATRIX CORRECTION (DELETE THIS WHEN NOT USING)"""
-    matrix_corrected = matrix_correction(list_of_list, matrix_MOD2)
-    p1 = plot_dyes(matrix_corrected)
-    # p1 = plot_dyes(list_of_list)
+    # matrix_corrected = matrix_correction(list_of_list, matrix_MOD2)
+    # p1 = plot_dyes(matrix_corrected)
+    p1 = plot_dyes(list_of_list)
     p1.set_title(file_dir)
+
+def main_with_just_kfilter4(file_dir, threhold_value=600):
+    """
+    The correct order of how to view the allelic ladder.
+    1) Load file
+    2) Time Averaging/K_filter/Get 5 dyes
+    3) Matrix Correction
+    4) K_Baseline Subtraction
+    5) Plot
+    :param file_dir:
+    :return:
+    """
+
+    """1) load file"""
+    pd = load_file(file_dir)
+    print "File done loading"
+    """2) Time Averaging/K_filter/Get 5 dyes"""
+    kfiltered_list_of_list = k_filter4(pd, pixel_steps=8, time_steps=2)
+    print "k_filter4 is done"
+    """3) Matrix Correction"""
+    # matrix_corrected_list_of_list = matrix_correction(kfiltered_list_of_list, matrix_MOD2)
+    """3) K_Baseline Subtraction"""
+    # l1 = line_scanner1.find_all_local_min(threshold_value=50000)
+    """3.1) Trying out peakdet"""
+    list_of_peaks = k_peak_detection(kfiltered_list_of_list)
+    print "Matrix Correction is done"
+    """4) baseline_subtraction"""
+    # bs1_subs = []
+    # for i in matrix_corrected_list_of_list:
+    #     bs1 = baseline_subtraction_class(i)
+    #     bs1_sub = bs1.perform_baseline_subtraction()
+    #     bs1_subs.append((bs1_sub))
+    print "k_baseline subtraction is done"
+    """5) plot"""
+    print "plotting"
+    # p1 = plot_dyes(kfiltered_list_of_list)
+    # plotly_dyes(kfiltered_list_of_list)
+    p2 = plot_dye_cursor(kfiltered_list_of_list, list_of_peaks)
+    print "done"
+    # plt.show()
+
+def main_with_cursor():
+    pass
 
 
 def main_get_five_dark_spec_dyes_and_plot(file_dir):
@@ -839,9 +1104,9 @@ if __name__ == "__main__":
     folder = '../csv_files'
     # file name variables
     AL2 = '10_26_9mW_AL_(actual).csv'
-    file_name = 'dummy_1_24_17.csv'
+    file_name = 'luna_experiment_1_18_AL_manual_run_trial_2.csv'
     # file_name2 = '10_13_AL_new_ibsen_modified.csv'
-    file_name2 = 'luna_experiment_1_18_AL_manual_run_trial_2.csv'
+    file_name2 = 'luna_experiment_1_20_CUSTOMER_LADDER_manual_run_trial_2.csv'
     file_name3 = 'luna_experiment_1_23_CUSTOMER_LADDER_manual_run_DARK_ONLY.csv'
 
     five_color_matrix1 = "luna_experiment_1_12_AL_manual_run_trial_3.csv"
@@ -851,7 +1116,7 @@ if __name__ == "__main__":
 
     print "a"
 
-    file_dir = join(folder, AL2)
+    file_dir = join(folder, file_name)
     file_dir2 = join(folder, file_name2)
     file_dir3 = join(folder, file_name3)
 
@@ -862,15 +1127,11 @@ if __name__ == "__main__":
     # dark_spectrum = df.iloc[:,1].tolist()
     # ibsen_plot = plot_ibsen_spectrum(dark_spectrum)
 
-    # main1(file_dir3, file_dir2)
-    # main_get_five_dyes_and_plot(Kevins_conversion)
-    # main_get_five_dyes_and_plot(Three_10)
-    # main_conversion_310(file_dir2, file_name2)
-    # main_conversion_sg1(file_dir2)
-    # main_get_five_dyes_and_plot(file_dir2)
-    # main_get_five_dyes_and_plot(file_dir_luna)
-    main_get_five_dyes_and_plot(join(folder, file_dir))
-    main_get_five_dyes_and_plot(join(folder, file_dir2))
+    # main_get_five_dyes_and_plot(join(folder, file_dir))
+    # main_with_just_kfilter4(join(folder, file_dir2))
+    main_with_just_kfilter4(join(folder, file_dir))
+
+    # baseline_subtraction_steps_main(join(folder, file_dir2))
     # main_get_five_dyes_and_convert_to_csv(join(folder, file_dir2))
     # reference_sepectrum(file_dir3)
     # main_get_five_dark_spec_dyes_and_plot(join(folder,file_dir3))

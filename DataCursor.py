@@ -77,11 +77,12 @@ class DataCursor(object):
             annotation.set_visible(True)
             event.canvas.draw()
 
-x=[1,2,3,4,5]
-y=[6,7,8,9,10]
+if __name__ == "__main__":
+    x=[1,2,3,4,5]
+    y=[6,7,8,9,10]
 
-fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
-scat = ax.scatter(x, y)
-DataCursor(scat, x, y)
-plt.show()
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    scat = ax.scatter(x, y)
+    DataCursor(scat, x, y)
+    plt.show()

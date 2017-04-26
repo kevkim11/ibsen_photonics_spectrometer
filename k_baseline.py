@@ -77,9 +77,9 @@ class line_scanner:
         """
         i_counter = 0
         pointer = 1
-        uno = float
-        dos = float
-        tres = float
+        uno = 0
+        dos = 0
+        tres = 0
         for i in self.reading_line:
             if i_counter == 0:
                 uno = i
@@ -101,6 +101,57 @@ class line_scanner:
                     self.local_max_dict["y/best-fit line"].append(dos)
         return self.local_max_dict
 
+    def find_all_global_max(self):
+        i_counter = 0
+        pointer = 1
+        uno = 0
+        dos = 0
+        tres = 0
+        local_max_dict = self.find_all_local_max()
+        global_max_dict = {"x/quarter seconds":[],
+                           "y/best-fit line":[]}
+        global_max_dict2 = {"x/quarter seconds":[],
+                           "y/best-fit line":[]}
+        for i1, i2 in zip(local_max_dict["x/quarter seconds"], local_max_dict["y/best-fit line"]):
+            if i_counter == 0:
+                uno = i2
+                i_counter += 1
+            elif i_counter == 1:
+                dos = i2
+                i_counter += 1
+            elif i_counter == 2:
+                tres = i2
+                i_counter += 1
+            else:
+                uno = dos
+                dos = tres
+                tres = i2
+                i_counter += 1
+                pointer += 1
+                if uno < dos and tres < dos:  # If local min, append to local_min_dict
+                    global_max_dict["x/quarter seconds"].append(i1)
+                    global_max_dict["y/best-fit line"].append(dos)
+
+        for i1, i2 in zip(global_max_dict["x/quarter seconds"], global_max_dict["y/best-fit line"]):
+            if i_counter == 0:
+                uno = i2
+                i_counter += 1
+            elif i_counter == 1:
+                dos = i2
+                i_counter += 1
+            elif i_counter == 2:
+                tres = i2
+                i_counter += 1
+            else:
+                uno = dos
+                dos = tres
+                tres = i2
+                i_counter += 1
+                pointer += 1
+                if uno < dos and tres < dos:  # If local min, append to local_min_dict
+                    global_max_dict2["x/quarter seconds"].append(i1)
+                    global_max_dict2["y/best-fit line"].append(i2)
+        return global_max_dict
 
 class K_Baseline:
     def __init__(self, local_min_dict):
