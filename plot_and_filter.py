@@ -278,8 +278,9 @@ def k_peak_detection(list_of_list):
     :param list_of_list:
     :return: list that contains two lists (x and y peaks)
     """
-    list_of_peaks = [[],[]]
+    list_of_peaks = [[],[],[],[],[]]
     threhold_value = 65
+    index = 0
     for list in list_of_list:
         maxtab, mintab = peakdet(list, 10)
         local_max_x = array(maxtab)[:, 0]
@@ -294,8 +295,9 @@ def k_peak_detection(list_of_list):
                 peak_y.append(y)
         peak_x.pop(0)
         peak_y.pop(0)
-        list_of_peaks[0].append(peak_x)
-        list_of_peaks[1].append(peak_y)
+        list_of_peaks[index].append(peak_x)
+        list_of_peaks[index].append(peak_y)
+        index += 1
     return list_of_peaks
 
 
@@ -457,11 +459,11 @@ def plot_dyes2(list_list_dyes, list_of_peaks):
     plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
     plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
     plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
-    plot.scatter(list_of_peaks[0][0], list_of_peaks[1][0], c="red")
-    plot.scatter(list_of_peaks[0][1], list_of_peaks[1][1], c="orange")
-    plot.scatter(list_of_peaks[0][2], list_of_peaks[1][2], c="green")
-    plot.scatter(list_of_peaks[0][3], list_of_peaks[1][3], c="blue")
-    plot.scatter(list_of_peaks[0][4], list_of_peaks[1][4], c="purple")
+    plot.scatter(list_of_peaks[0][0], list_of_peaks[0][1], c="red")
+    plot.scatter(list_of_peaks[1][0], list_of_peaks[1][1], c="orange")
+    plot.scatter(list_of_peaks[2][0], list_of_peaks[2][1], c="green")
+    plot.scatter(list_of_peaks[3][0], list_of_peaks[3][1], c="blue")
+    plot.scatter(list_of_peaks[4][0], list_of_peaks[4][1], c="purple")
 
     """
     Set the x and y coordinate labels
@@ -495,19 +497,113 @@ def plot_dyes2(list_list_dyes, list_of_peaks):
     legend = plt.legend(loc='upper left', fontsize='small')
     return plot
 
+
+def plot_single_dye_cursor(dye_list, peak_list, count=0):
+    fig = plt.figure()
+    plot = fig.add_subplot(111)
+
+    x_axis = [x for x in range(len(dye_list))]
+    if count == 0:
+        plot.plot(x_axis, dye_list, c="blue", label='Flu')
+        scat = plot.scatter(peak_list[0], peak_list[1], c="red")
+        DataCursor(scat, peak_list[0], peak_list[1])
+    elif count == 1:
+        plot.plot(x_axis, dye_list, c="green", label='Joe')
+        scat = plot.scatter(peak_list[0], peak_list[1], c="red")
+        DataCursor(scat, peak_list[0], peak_list[1])
+    elif count == 2:
+        plot.plot(x_axis, dye_list, c="orange", label='TMR')
+        scat = plot.scatter(peak_list[0], peak_list[1], c="black")
+        DataCursor(scat, peak_list[0], peak_list[1])
+    elif count == 3:
+        plot.plot(x_axis, dye_list, c="red", label='CXR')
+        scat = plot.scatter(peak_list[0], peak_list[1], c="blue")
+        DataCursor(scat, peak_list[0], peak_list[1])
+    elif count == 4:
+        plot.plot(x_axis, dye_list, c="black", label='WEN')
+        scat = plot.scatter(peak_list[0], peak_list[1], c="red")
+        DataCursor(scat, peak_list[0], peak_list[1])
+
+
+    """
+    Set the x and y coordinate labels
+    """
+    plot.set_xlabel('quarter Seconds')
+    plot.set_ylabel('ADC-Counts')
+    """
+    delta click event function
+    """
+    # Keep track of x/y coordinates, part of the find_delta_onclick
+    xcoords = []
+    ycoords = []
+
+    def find_delta_onclick(event):
+        global ix, iy
+        global coords
+        ix, iy = event.xdata, event.ydata
+        xcoords.append(ix)
+        ycoords.append(iy)
+        print 'x = %s, y = %s' % (ix, iy)
+        if len(xcoords) % 2 == 0:
+            delta_x = abs(xcoords[-1] - xcoords[-2])
+            delta_y = abs(ycoords[-1] - ycoords[-2])
+            print 'delta_x = %d, delta_y = %d' % (delta_x, delta_y)
+        coords = [ix, iy]
+        return coords
+
+    # connect the onclick function to the to mouse press
+    fig.canvas.mpl_connect('button_press_event', find_delta_onclick)
+
+    legend = plt.legend(loc='upper left', fontsize='small')
+    return plot
+
 def plot_dye_cursor(list_list_dyes, list_of_peaks):
     fig = plt.figure()
     plot = fig.add_subplot(111)
 
     x_axis = [x for x in range(len(list_list_dyes[0]))]
 
+
     plot.plot(x_axis, list_list_dyes[0], c="blue", label='Flu')
+    plot.plot(x_axis, list_list_dyes[1], c="green", label='Joe')
+    # plot.plot(x_axis, list_list_dyes[2], c="orange", label='TMR')
+    # plot.plot(x_axis, list_list_dyes[3], c="red", label='CXR')
+    # plot.plot(x_axis, list_list_dyes[4], c="black", label='WEN')
 
-    scat = plot.scatter(list_of_peaks[0][0], list_of_peaks[1][0], c="red")
-    DataCursor(scat, list_of_peaks[0][0], list_of_peaks[1][0])
+    DataCursor(plot.scatter(list_of_peaks[0][0], list_of_peaks[1][0], c="red"), list_of_peaks[0][0], list_of_peaks[1][0])
+    DataCursor(plot.scatter(list_of_peaks[0][1], list_of_peaks[1][1], c="orange"), list_of_peaks[0][1], list_of_peaks[1][1])
+    # plot.scatter(list_of_peaks[0][2], list_of_peaks[1][2], c="green")
+    # plot.scatter(list_of_peaks[0][3], list_of_peaks[1][3], c="blue")
+    # plot.scatter(list_of_peaks[0][4], list_of_peaks[1][4], c="purple")
 
+
+    """
+    Set the x and y coordinate labels
+    """
     plot.set_xlabel('quarter Seconds')
     plot.set_ylabel('ADC-Counts')
+    """
+    delta click event function
+    """
+    # Keep track of x/y coordinates, part of the find_delta_onclick
+    xcoords = []
+    ycoords = []
+    def find_delta_onclick(event):
+        global ix, iy
+        global coords
+        ix, iy = event.xdata, event.ydata
+        xcoords.append(ix)
+        ycoords.append(iy)
+        print 'x = %s, y = %s' % (ix, iy)
+        if len(xcoords) % 2 == 0:
+            delta_x = abs(xcoords[-1] - xcoords[-2])
+            delta_y = abs(ycoords[-1] - ycoords[-2])
+            print 'delta_x = %d, delta_y = %d' % (delta_x, delta_y)
+        coords = [ix, iy]
+        return coords
+    # connect the onclick function to the to mouse press
+    fig.canvas.mpl_connect('button_press_event', find_delta_onclick)
+
     legend = plt.legend(loc='upper left', fontsize='small')
     return plot
 
@@ -1004,7 +1100,12 @@ def main_with_just_kfilter4(file_dir, threhold_value=600):
     print "plotting"
     # p1 = plot_dyes(kfiltered_list_of_list)
     # plotly_dyes(kfiltered_list_of_list)
-    p2 = plot_dye_cursor(kfiltered_list_of_list, list_of_peaks)
+    # p2 = plot_dye_cursor(kfiltered_list_of_list, list_of_peaks)
+    sp1 = plot_single_dye_cursor(kfiltered_list_of_list[0], list_of_peaks[0], 0)
+    sp2 = plot_single_dye_cursor(kfiltered_list_of_list[1], list_of_peaks[1], 1)
+    sp3 = plot_single_dye_cursor(kfiltered_list_of_list[2], list_of_peaks[2], 2)
+    sp4 = plot_single_dye_cursor(kfiltered_list_of_list[3], list_of_peaks[3], 3)
+    sp5 = plot_single_dye_cursor(kfiltered_list_of_list[4], list_of_peaks[4], 4)
     print "done"
     # plt.show()
 
